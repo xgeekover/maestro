@@ -62,6 +62,9 @@ public final class RunnerMain {
         String host = hostPort.substring(0, colon);
         int port = Integer.parseInt(hostPort.substring(colon + 1));
         new RunnerClient(host, port, runId, scriptId, token).run();
+        // 엔진 종료(중지/STOP/에러/행) 시 프로세스를 확실히 종료한다.
+        // 스크립트 스레드가 행(hang) 상태로 남아도 좀비 JVM이 되지 않도록 강제 종료.
+        System.exit(0);
     }
 
     // ---- 단독 모드 (Phase 3) ----
