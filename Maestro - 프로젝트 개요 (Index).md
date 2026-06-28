@@ -12,7 +12,7 @@ tags:
   - index
 created: 2026-06-28
 updated: 2026-06-28
-status: 기획
+status: 완료
 ---
 
 # 🎼 Maestro — 동적 자바 스크립트 플랫폼
@@ -59,7 +59,7 @@ status: 기획
 - [x] Phase 7 대시보드: `/api/dashboard` 집계(상태+최신 메트릭) + 데스크탑 **프로세스 그리드·CPU/메모리 SVG 스파크라인·실시간 로그**(대시보드 탭). **검증: DashboardIntegrationTest(부하 반영: 실행→대시보드 RUNNING+heap) + `pnpm build` 그린**. 문서 `docs/07-dashboard.md`
 - [x] Phase 8 테스트: **계약 테스트**(SDK·프로토콜) + 갭 단위(링버퍼·백프레셔·로거) + **JaCoCo 커버리지**(빌드 시 생성, CI 아티팩트). 문서 `docs/08-testing.md`
 - [x] Phase 9 시뮬레이션: 결함 주입 하니스(`SimulationTest` 5종) — **tick예외 격리·kill -9 재시작·무한루프 바운드종료·OOM 봉쇄·플로우 처리량(50 msg/s)** 실측. 러너 `System.exit` 보강. **5개 통과, 총 44개 테스트 그린**. 문서 `docs/09-simulation-report.md`
-- [ ] **Phase 10(배포) 착수 승인 대기** → Docker·electron-builder·CI/CD·릴리스·문서
-- 상태: **시뮬레이션 입증 · 격리/복원/처리량 실측 · Phase 10 대기** (44개 테스트 그린)
+- [x] Phase 10 배포: 백엔드 Docker화(JDK 런타임·러너 번들·비루트·healthcheck) + compose + electron-builder(Win/Mac/Linux) + 릴리스 CI/CD(GHCR·멀티OS·GitHub Release) + 환경설정/비밀 + 문서(README·사용자가이드·SDK레퍼런스). **검증: 이미지 빌드(918MB)·구동(health UP)·컨테이너 내부 end-to-end(스크립트→실행→RUNNING)**. 문서 `docs/10-deployment.md`
+- 상태: **✅ Phase 0–10 전체 완료** — 분석~배포, 44개 테스트 그린, 컨테이너 end-to-end 검증
 
 #project #maestro #java #platform #index

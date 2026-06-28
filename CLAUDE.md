@@ -76,7 +76,7 @@ docker run -p 8080:8080 maestro-backend
 - [x] **Phase 7** 대시보드: /api/dashboard 집계 + 프로세스 그리드·CPU/메모리 스파크라인·실시간 로그 (부하 반영 통합테스트 입증)
 - [x] **Phase 8** 테스트: 계약(SDK·프로토콜)+단위+통합/e2e + JaCoCo 커버리지(CI 아티팩트)
 - [x] **Phase 9** 시뮬레이션: 결함 주입(tick예외·kill -9·무한루프·OOM·처리량) 5종 실측, 총 44개 테스트 그린
-- [ ] **Phase 10** 배포
+- [x] **Phase 10** 배포: 백엔드 Docker(JDK+러너번들, 이미지 구동·end-to-end 검증) + electron-builder + 릴리스 CI/CD + 문서(README·가이드·SDK)
 
 ## 데스크탑 실행
 ```bash

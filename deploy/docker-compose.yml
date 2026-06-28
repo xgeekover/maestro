@@ -1,0 +1,19 @@
+# Maestro 백엔드 오케스트레이터 (로컬/단일호스트 배포).
+# 사용: docker compose -f deploy/docker-compose.yml up --build
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    image: maestro-backend:local
+    ports:
+      - "8080:8080"   # REST/WS API
+      - "9090:9090"   # 러너 텔레메트리 gRPC
+    environment:
+      SERVER_PORT: "8080"
+      MAESTRO_GRPC_PORT: "9090"
+      MAESTRO_RUNNER_BACKEND_HOST: "127.0.0.1"
+      MAESTRO_RESTART_MAX_ATTEMPTS: "5"
+      JAVA_OPTS: "-Xmx1g"
+      # 다중 사용자/HA로 전환 시(ADR-0002 O-1) Postgres 환경변수로 datasource 오버라이드
+    restart: unless-stopped

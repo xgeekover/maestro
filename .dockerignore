@@ -1,0 +1,11 @@
+# Docker 빌드 컨텍스트에서 제외 (이미지 내부에서 gradle 빌드 수행)
+**/node_modules
+**/build
+.gradle
+desktop/dist
+desktop/release
+**/.DS_Store
+.git
+.idea
+.vscode
+*.log
