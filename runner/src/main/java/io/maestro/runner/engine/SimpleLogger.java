@@ -39,7 +39,7 @@ public final class SimpleLogger implements Logger {
     }
 
     /** {@code {}} 플레이스홀더를 순서대로 치환. */
-    static String format(String msg, Object... args) {
+    public static String format(String msg, Object... args) {
         if (args == null || args.length == 0) {
             return msg;
         }

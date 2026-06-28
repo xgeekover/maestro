@@ -8,6 +8,7 @@ import io.maestro.runner.engine.LifecycleListener;
 import io.maestro.runner.engine.LifecycleState;
 import io.maestro.runner.engine.StandaloneContext;
 import io.maestro.runner.engine.TickPolicy;
+import io.maestro.runner.grpc.RunnerClient;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,26 +18,54 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 스크립트 러너 CLI — 단독 실행(스탠드얼론). 백엔드/gRPC 없이 스크립트 파일을 컴파일·실행한다.
- *
- * <pre>
- * 사용법:
- *   runner &lt;script.java&gt; [옵션]
- * 옵션:
- *   --period &lt;ms&gt;       onTick 주기 (기본 1000)
- *   --ticks &lt;n&gt;         실행할 tick 수 (기본 무제한, Ctrl+C로 중지)
- *   --policy continue|stop  onTick 예외 정책 (기본 continue)
- *   --tick-timeout &lt;ms&gt; tick 행 감지 타임아웃 (기본 없음)
- *   --error-threshold &lt;n&gt; CONTINUE에서 누적 에러 임계 (기본 없음)
- *   --param k=v          실행 파라미터 (반복 가능)
- * </pre>
+ * 스크립트 러너 CLI — 두 모드:
+ * <ul>
+ *   <li><b>연결 모드</b> {@code --connect host:port --run-id ID [--script-id S] [--token T]}:
+ *       백엔드 gRPC에 접속해 StartCommand로 스크립트를 받아 실행(Phase 4 오케스트레이션).</li>
+ *   <li><b>단독 모드</b> {@code <script.java> [옵션]}: 파일을 직접 컴파일·실행(Phase 3).</li>
+ * </ul>
  */
 public final class RunnerMain {
 
     private RunnerMain() {
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
+        if (args.length > 0 && args[0].equals("--connect")) {
+            runConnected(args);
+        } else {
+            runStandalone(args);
+        }
+    }
+
+    // ---- 연결 모드 (백엔드 오케스트레이션) ----
+    private static void runConnected(String[] args) throws InterruptedException {
+        String hostPort = null;
+        String runId = null;
+        String scriptId = "";
+        String token = "";
+        for (int i = 0; i < args.length; i++) {
+            switch (args[i]) {
+                case "--connect" -> hostPort = args[++i];
+                case "--run-id" -> runId = args[++i];
+                case "--script-id" -> scriptId = args[++i];
+                case "--token" -> token = args[++i];
+                default -> { /* 무시 */ }
+            }
+        }
+        if (hostPort == null || runId == null) {
+            System.err.println("연결 모드 사용법: --connect host:port --run-id ID [--script-id S] [--token T]");
+            System.exit(2);
+            return;
+        }
+        int colon = hostPort.lastIndexOf(':');
+        String host = hostPort.substring(0, colon);
+        int port = Integer.parseInt(hostPort.substring(colon + 1));
+        new RunnerClient(host, port, runId, scriptId, token).run();
+    }
+
+    // ---- 단독 모드 (Phase 3) ----
+    private static void runStandalone(String[] args) throws IOException {
         if (args.length == 0 || args[0].startsWith("--")) {
             System.err.println("사용법: runner <script.java> [--period ms] [--ticks n] "
                     + "[--policy continue|stop] [--tick-timeout ms] [--error-threshold n] [--param k=v ...]");
@@ -75,7 +104,6 @@ public final class RunnerMain {
         StandaloneContext context = new StandaloneContext(name, params);
         LifecycleEngine engine = new LifecycleEngine(source, cfg.build(), context, new ConsoleListener());
 
-        // Ctrl+C → graceful 중지(onEnd 보장)
         Thread main = Thread.currentThread();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             engine.stop();
@@ -98,7 +126,7 @@ public final class RunnerMain {
         System.exit(result.isError() ? 1 : 0);
     }
 
-    /** 콘솔로 상태 전이/틱을 출력하는 리스너. */
+    /** 콘솔로 상태 전이/틱을 출력하는 리스너(단독 모드). */
     private static final class ConsoleListener implements LifecycleListener {
         @Override
         public void onStateChange(LifecycleState from, LifecycleState to, String detail) {
