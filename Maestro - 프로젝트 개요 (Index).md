@@ -51,7 +51,9 @@ status: 기획
 - [x] Phase 0 산출물 작성: `docs/00-analysis.md`, `docs/adr/0001-*.md`
 - [x] 설계 결정 확정(ADR-0002): IPC **gRPC** · 플로우 **DAG 강제** · 인증 **로컬계정+JWT** · 저장소 **H2시작+Postgres 전환경로**
 - [x] Phase 1 설계 산출물: `docs/01-architecture.md`(다이어그램·상태기계·감시모델·IPC) · `protocol/maestro.proto`(gRPC) · `sdk` 인터페이스 스텁 · `docs/api/openapi.yaml` · `docs/db/schema.sql` · ADR-0003(프로세스격리·Electron·JDT)
-- [ ] **Phase 2 스캐폴딩 착수 승인 대기** → 모노레포·Gradle·pnpm·CI·`CLAUDE.md`
-- 상태: **설계 완료 · Phase 2 대기** (코드: SDK/프로토콜 스텁만) 
+- [x] Phase 2 스캐폴딩: Gradle 멀티모듈(sdk/protocol/runner/backend, **Java 21 툴체인 자동 프로비저닝**) + pnpm 데스크탑(Electron+React+Vite) + GitHub Actions CI + `CLAUDE.md`. **검증: `./gradlew build`·`pnpm build`·`pnpm typecheck` 통과**, git 초기화·초기 커밋(`5d766d3`)
+- [x] Phase 3 스크립트 엔진(핵심): 동적 컴파일(`JavaCompiler` 인메모리 + 격리 ClassLoader) + 라이프사이클 엔진(onStart 1·onTick 주기·onEnd 1) + tick 예외 격리(CONTINUE/STOP/임계) + 행 워치독 + **CLI 단독 실행**. **검증: 단위 테스트 12개 그린 + CLI 스모크**. 문서 `docs/03-script-engine.md`
+- [ ] **Phase 4(백엔드 오케스트레이터) 착수 승인 대기** → 프로세스 기동/감시/재시작 · gRPC · REST/WS · 메트릭
+- 상태: **스크립트 엔진 완료 · 라이프사이클 보장 입증 · Phase 4 대기**
 
 #project #maestro #java #platform #index
