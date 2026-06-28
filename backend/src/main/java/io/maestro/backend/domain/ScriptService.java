@@ -31,6 +31,21 @@ public class ScriptService {
         return repository.findById(id);
     }
 
+    public Optional<ScriptEntity> update(String id, String name, String source) {
+        return repository.findById(id).map(entity -> {
+            entity.update(name, source, hash(source), Instant.now());
+            return repository.save(entity);
+        });
+    }
+
+    public boolean delete(String id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
     private static String hash(String source) {
         return Integer.toHexString(source.hashCode());
     }

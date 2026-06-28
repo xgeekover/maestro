@@ -1,0 +1,38 @@
+import type { CreateRunRequest, LogEntry, MetricSnapshot, RunDto, ScriptDto } from '../types'
+
+interface MaestroBridge {
+  backendUrl?: string
+}
+
+export const BACKEND_BASE: string =
+  (window as unknown as { maestro?: MaestroBridge }).maestro?.backendUrl ?? 'http://localhost:8080'
+
+async function http<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(BACKEND_BASE + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...init,
+  })
+  if (!res.ok) {
+    throw new Error(`${res.status} ${res.statusText} — ${path}`)
+  }
+  const text = await res.text()
+  return (text ? JSON.parse(text) : undefined) as T
+}
+
+export const api = {
+  listScripts: () => http<ScriptDto[]>('/api/scripts'),
+  getScript: (id: string) => http<ScriptDto>(`/api/scripts/${id}`),
+  createScript: (name: string, source: string) =>
+    http<ScriptDto>('/api/scripts', { method: 'POST', body: JSON.stringify({ name, source }) }),
+  updateScript: (id: string, name: string, source: string) =>
+    http<ScriptDto>(`/api/scripts/${id}`, { method: 'PUT', body: JSON.stringify({ name, source }) }),
+  deleteScript: (id: string) => http<void>(`/api/scripts/${id}`, { method: 'DELETE' }),
+
+  listRuns: () => http<RunDto[]>('/api/runs'),
+  getRun: (id: string) => http<RunDto>(`/api/runs/${id}`),
+  startRun: (req: CreateRunRequest) =>
+    http<RunDto>('/api/runs', { method: 'POST', body: JSON.stringify(req) }),
+  stopRun: (id: string) => http<void>(`/api/runs/${id}/stop`, { method: 'POST' }),
+  metrics: (id: string) => http<MetricSnapshot[]>(`/api/runs/${id}/metrics`),
+  logs: (id: string) => http<LogEntry[]>(`/api/runs/${id}/logs`),
+}

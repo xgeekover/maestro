@@ -3,9 +3,11 @@ package io.maestro.backend.api;
 import io.maestro.backend.domain.ScriptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -40,5 +42,20 @@ public class ScriptController {
                 .map(Dtos.ScriptResponse::of)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Dtos.ScriptResponse> update(@PathVariable String id,
+                                                      @RequestBody Dtos.CreateScriptRequest req) {
+        return scripts.update(id, req.name(), req.source())
+                .map(Dtos.ScriptResponse::of)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) {
+        scripts.delete(id);
     }
 }

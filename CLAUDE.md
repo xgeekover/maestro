@@ -68,10 +68,18 @@ docker run -p 8080:8080 maestro-backend
 - [x] **Phase 0** 분석 — `docs/00-analysis.md`
 - [x] **Phase 1** 설계 — `docs/01-architecture.md`, `maestro.proto`, sdk 스텁, OpenAPI, DB 스키마
 - [x] **Phase 2** 스캐폴딩 — 모노레포·Gradle 멀티모듈·pnpm·CI·이 문서 (`./gradlew build`·`pnpm build` 통과)
-- [ ] **Phase 3** 스크립트 엔진(핵심): 동적 컴파일 + 라이프사이클 + tick 격리 + CLI 단독 실행
-- [ ] **Phase 4** 백엔드 오케스트레이터: 기동/감시/재시작·스케줄·REST/WS·메트릭
-- [ ] **Phase 5** 데스크탑: Monaco + JDT LS·스크립트 CRUD·실행/상태
+- [x] **Phase 3** 스크립트 엔진(핵심): 동적 컴파일 + 라이프사이클 + tick 격리 + CLI 단독 실행 (단위 12개 그린)
+- [x] **Phase 4** 백엔드 오케스트레이터: 기동/감시/재시작·gRPC·REST/WS·메트릭 (격리+재시작 통합테스트 입증)
+- [x] **Phase 5** 데스크탑: Electron+React+Monaco(SDK 보조)·스크립트 CRUD·실행/상태·로그/메트릭 + JDT LS 스파이크 (REST 라운드트립 입증)
 - [ ] **Phase 6** 플로우 & 모듈 · [ ] **Phase 7** 대시보드 · [ ] **Phase 8** 테스트 · [ ] **Phase 9** 시뮬레이션 · [ ] **Phase 10** 배포
+
+## 데스크탑 실행
+```bash
+./gradlew :runner:installDist
+MAESTRO_RUNNER_CLASSPATH="$PWD/runner/build/install/runner/lib/*" ./gradlew :backend:bootRun   # 백엔드(러너 클래스패스 제공)
+cd desktop && pnpm install && pnpm dev                                                          # 데스크탑 개발 서버
+#   pnpm fetch:jdtls  → JDT LS 활성화(선택, ≈100MB+, JDK 필요)
+```
 
 ## CI
 `.github/workflows/ci.yml` — `jvm`(setup-java 21 + `./gradlew build`)와 `desktop`(pnpm install + typecheck + build) 두 잡.
