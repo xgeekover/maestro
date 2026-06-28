@@ -17,8 +17,15 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
-      - name: Gradle build
+      - name: Gradle build (tests + JaCoCo coverage)
         run: ./gradlew build --console=plain --stacktrace
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage
+          path: '**/build/reports/jacoco/test/html'
+          if-no-files-found: ignore
 
   desktop:
     name: Desktop build (Electron + React)

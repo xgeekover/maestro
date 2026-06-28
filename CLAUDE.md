@@ -31,7 +31,8 @@ maestro/
 ./gradlew :protocol:build    # gRPC 스키마 코드 생성/컴파일
 ./gradlew :backend:bootRun   # 백엔드 기동 (http://localhost:8080, /actuator/health)
 ./gradlew :runner:run        # 러너 스텁 실행
-./gradlew test               # 단위 테스트 (Phase 8에서 본격화)
+./gradlew test               # 전체 테스트(39개: 단위·계약·통합)
+./gradlew build              # 테스트 + JaCoCo 커버리지(**/build/reports/jacoco/test/)
 ```
 - 첫 빌드는 JDK 21 툴체인 + protoc/gRPC + 의존성 다운로드로 시간이 걸린다.
 - 생성된 gRPC 코드: `protocol/build/generated/source/proto/...`.
@@ -73,7 +74,8 @@ docker run -p 8080:8080 maestro-backend
 - [x] **Phase 5** 데스크탑: Electron+React+Monaco(SDK 보조)·스크립트 CRUD·실행/상태·로그/메트릭 + JDT LS 스파이크 (REST 라운드트립 입증)
 - [x] **Phase 6** 플로우 & 모듈: 라우팅(DAG·백프레셔)·모듈·React Flow 캔버스 (2노드 분산처리 통합테스트 입증)
 - [x] **Phase 7** 대시보드: /api/dashboard 집계 + 프로세스 그리드·CPU/메모리 스파크라인·실시간 로그 (부하 반영 통합테스트 입증)
-- [ ] **Phase 8** 테스트 · [ ] **Phase 9** 시뮬레이션 · [ ] **Phase 10** 배포
+- [x] **Phase 8** 테스트: 계약(SDK·프로토콜)+단위+통합/e2e 39개 그린 + JaCoCo 커버리지(CI 아티팩트)
+- [ ] **Phase 9** 시뮬레이션 · [ ] **Phase 10** 배포
 
 ## 데스크탑 실행
 ```bash

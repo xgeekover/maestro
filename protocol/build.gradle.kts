@@ -15,6 +15,10 @@ dependencies {
     api("com.google.protobuf:protobuf-java:$protobufVersion")
     // 생성 코드의 javax.annotation.Generated 용 (런타임 불필요)
     compileOnly("org.apache.tomcat:annotations-api:6.0.53")
+
+    testImplementation(platform("org.junit:junit-bom:5.10.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 protobuf {

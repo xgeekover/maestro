@@ -57,7 +57,8 @@ status: 기획
 - [x] Phase 5 데스크탑: Electron+React+**Monaco**(Java 언어·SDK 자동완성/호버) + 스크립트 **CRUD**(+백엔드 PUT/DELETE) + 실행/중지·상태·로그·메트릭 실시간(REST/WS) + **JDT LS 연동 스파이크**(기동 모듈·다운로드·클래스패스 설계). **검증: `pnpm typecheck/build` 그린 + REST 라운드트립 테스트(작성→실행→상태→중지)**. 헤드리스라 GUI 클릭/JDT 풀시맨틱은 후속. 문서 `docs/05-desktop.md`
 - [x] Phase 6 플로우 & 모듈: 백엔드 **플로우 라우팅**(노드 emit→하류 DeliverMessage, **DAG 강제**·바운디드 큐 백프레셔) + **모듈**(semver·포트 스펙·인스턴스화) + REST(flows/modules) + **React Flow 캔버스**(뷰 전환). **검증: 통합 테스트로 2노드 메시지 분산 처리 시연(producer→consumer) + DAG 거부 + `pnpm build` 그린**. 문서 `docs/06-flow.md`
 - [x] Phase 7 대시보드: `/api/dashboard` 집계(상태+최신 메트릭) + 데스크탑 **프로세스 그리드·CPU/메모리 SVG 스파크라인·실시간 로그**(대시보드 탭). **검증: DashboardIntegrationTest(부하 반영: 실행→대시보드 RUNNING+heap) + `pnpm build` 그린**. 문서 `docs/07-dashboard.md`
-- [ ] **Phase 8(테스트) 착수 승인 대기** → 단위/통합/e2e/계약 테스트 + 커버리지·CI 그린
-- 상태: **대시보드 완료 · 부하 반영 입증 · Phase 8 대기** (백엔드 8 + 러너 12 테스트 그린)
+- [x] Phase 8 테스트: **계약 테스트**(SDK·프로토콜) + 갭 단위(링버퍼·백프레셔·로거) + **JaCoCo 커버리지**(빌드 시 생성, CI 아티팩트). **총 39개 테스트 그린**(sdk 4·protocol 5·runner 16·backend 14). 문서 `docs/08-testing.md`
+- [ ] **Phase 9(시뮬레이션·결함 주입) 착수 승인 대기** → 병렬 N개·결함 주입(OOM·무한루프·kill)·격리/재시작/대시보드 정확성 검증
+- 상태: **테스트 스위트 완성 · 커버리지 가시화 · Phase 9 대기** (39개 테스트 그린)
 
 #project #maestro #java #platform #index
