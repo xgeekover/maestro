@@ -1,0 +1,5 @@
+# pnpm 11 설정 홈. 신뢰된 패키지의 빌드 스크립트(네이티브 바이너리) 허용.
+# esbuild: vite 빌드에 필요. electron: 데스크탑 런타임/패키징에 필요.
+allowBuilds:
+  electron: true
+  esbuild: true

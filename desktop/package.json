@@ -1,0 +1,44 @@
+{
+  "name": "maestro-desktop",
+  "version": "0.1.0",
+  "description": "Maestro 데스크탑 앱 (Electron + React + Monaco + React Flow)",
+  "private": true,
+  "type": "module",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "dist": "pnpm build && pnpm build:electron && electron-builder"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "reactflow": "^11.11.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^31.3.0",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0"
+  },
+  "build": {
+    "appId": "io.maestro.desktop",
+    "productName": "Maestro",
+    "files": [
+      "dist/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": { "target": "dmg" },
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  }
+}

@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: Maestro Orchestrator API
+  version: 0.1.0-design
+  description: >
+    백엔드 오케스트레이터 REST API (설계 스케치, Phase 1).
+    실시간 상태/로그/메트릭은 WebSocket 채널로 별도 스트리밍(아래 x-websocket 참조).
+    인증: 로컬 계정 + JWT (ADR-0002 O-8). 모든 /api/** 는 Bearer JWT 필요(인증 엔드포인트 제외).
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/login:
+    post:
+      summary: 로그인 → JWT 발급
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LoginRequest' } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
+        '401': { description: 인증 실패 }
+
+  /api/scripts:
+    get:
+      summary: 스크립트 목록(소유권 인가)
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Script' } } } } } }
+    post:
+      summary: 스크립트 생성
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ScriptUpsert' } } } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Script' } } } } }
+  /api/scripts/{id}:
+    parameters: [ { name: id, in: path, required: true, schema: { type: string } } ]
+    get: { summary: 스크립트 조회, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Script' } } } } } }
+    put: { summary: 스크립트 수정, requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ScriptUpsert' } } } }, responses: { '200': { description: OK } } }
+    delete: { summary: 스크립트 삭제, responses: { '204': { description: No Content } } }
+  /api/scripts/{id}/compile:
+    post:
+      summary: 동적 컴파일 검증(진단만 반환, 실행 X)
+      parameters: [ { name: id, in: path, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CompileResult' } } } } }
+
+  /api/runs:
+    get: { summary: 실행 중/이력 프로세스 목록, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Run' } } } } } } }
+    post:
+      summary: 스크립트 실행(러너 프로세스 기동)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RunRequest' } } } }
+      responses: { '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/Run' } } } } }
+  /api/runs/{runId}:
+    parameters: [ { name: runId, in: path, required: true, schema: { type: string } } ]
+    get: { summary: 실행 상태 조회, responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Run' } } } } } }
+  /api/runs/{runId}/stop:
+    post:
+      summary: graceful 중지(onEnd 보장 → 타임아웃 시 강제)
+      parameters: [ { name: runId, in: path, required: true, schema: { type: string } }, { name: gracePeriodMs, in: query, schema: { type: integer, default: 5000 } } ]
+      responses: { '202': { description: Accepted } }
+  /api/runs/{runId}/metrics:
+    get:
+      summary: 최근 메트릭(링버퍼) 조회
+      parameters: [ { name: runId, in: path, required: true, schema: { type: string } }, { name: windowSec, in: query, schema: { type: integer, default: 300 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MetricSeries' } } } } }
+
+  /api/flows:
+    get: { summary: 플로우 목록, responses: { '200': { description: OK } } }
+    post:
+      summary: 플로우 생성/저장(DAG 검증 — 사이클 거부, O-9)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Flow' } } } }
+      responses: { '201': { description: Created }, '422': { description: 사이클 등 DAG 위반 } }
+  /api/flows/{id}/deploy:
+    post: { summary: 플로우 배포(노드별 러너 기동), parameters: [ { name: id, in: path, required: true, schema: { type: string } } ], responses: { '202': { description: Accepted } } }
+
+  /api/modules:
+    get: { summary: 모듈 레지스트리 목록(semver), responses: { '200': { description: OK } } }
+    post: { summary: 모듈 등록/버전 업로드, responses: { '201': { description: Created } } }
+
+  /api/health:
+    get: { summary: 헬스체크, security: [], responses: { '200': { description: OK } } }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    LoginRequest: { type: object, required: [username, password], properties: { username: { type: string }, password: { type: string } } }
+    TokenResponse: { type: object, properties: { accessToken: { type: string }, expiresIn: { type: integer } } }
+    Script:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        source: { type: string }
+        sourceHash: { type: string }
+        ownerId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ScriptUpsert: { type: object, required: [name, source], properties: { name: { type: string }, source: { type: string } } }
+    CompileResult:
+      type: object
+      properties:
+        success: { type: boolean }
+        diagnostics: { type: array, items: { $ref: '#/components/schemas/Diagnostic' } }
+    Diagnostic:
+      type: object
+      properties: { kind: { type: string, enum: [ERROR, WARNING, NOTE] }, line: { type: integer }, column: { type: integer }, code: { type: string }, message: { type: string } }
+    RunRequest:
+      type: object
+      required: [scriptId]
+      properties:
+        scriptId: { type: string }
+        tickPeriodMs: { type: integer, default: 1000 }
+        params: { type: object, additionalProperties: { type: string } }
+        tickPolicy: { type: string, enum: [CONTINUE, STOP], default: CONTINUE }
+        maxHeapBytes: { type: integer }
+    Run:
+      type: object
+      properties:
+        runId: { type: string }
+        scriptId: { type: string }
+        state: { type: string, enum: [COMPILING, STARTING, RUNNING, STOPPING, STOPPED, ERROR] }
+        pid: { type: integer }
+        startedAt: { type: string, format: date-time }
+        uptimeMs: { type: integer }
+        tickCount: { type: integer }
+        errorCount: { type: integer }
+        restartCount: { type: integer }
+    MetricSeries:
+      type: object
+      properties:
+        runId: { type: string }
+        samples:
+          type: array
+          items:
+            type: object
+            properties: { epochMs: { type: integer }, heapUsedBytes: { type: integer }, processCpuLoad: { type: number }, tickCount: { type: integer }, errorCount: { type: integer } }
+    Flow:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        nodes: { type: array, items: { $ref: '#/components/schemas/FlowNode' } }
+        edges: { type: array, items: { $ref: '#/components/schemas/FlowEdge' } }
+    FlowNode:
+      type: object
+      properties: { id: { type: string }, kind: { type: string, enum: [script, module] }, refId: { type: string }, params: { type: object, additionalProperties: { type: string } } }
+    FlowEdge:
+      type: object
+      properties: { fromNode: { type: string }, fromPort: { type: string }, toNode: { type: string }, toPort: { type: string } }
+
+# x-websocket (설계 메모, OpenAPI 비표준):
+#   WS /ws/runs/{runId}/logs     — 실시간 로그 스트림
+#   WS /ws/runs/{runId}/metrics  — 실시간 메트릭 스트림(대시보드 차트)
+#   WS /ws/flows/{id}/events     — 노드 상태/메시지 흐름 이벤트

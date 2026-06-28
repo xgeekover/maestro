@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: maestro-backend
+  datasource:
+    # 스캐폴딩: 인메모리 H2. Phase 4에서 H2 서버모드(다중사용자, ADR-0002 O-1)로 전환.
+    url: jdbc:h2:mem:maestro;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  flyway:
+    # Phase 2에서는 비활성(스캐폴드 기동 보장). Phase 4에서 flyway-database-h2 추가 후 활성화.
+    enabled: false
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

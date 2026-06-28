@@ -1,0 +1,29 @@
+# ===== JVM / Gradle =====
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!src/**/build/
+out/
+*.class
+
+# ===== Node / pnpm / Electron =====
+node_modules/
+desktop/dist/
+desktop/release/
+desktop/.vite/
+pnpm-debug.log*
+npm-debug.log*
+
+# ===== IDE / OS =====
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.log
+
+# ===== Local config / secrets =====
+*.local
+.env
+.env.*
+!.env.example

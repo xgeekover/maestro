@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package maestro.v1;
+
+option java_multiple_files = true;
+option java_package = "io.maestro.protocol.v1";
+option java_outer_classname = "MaestroProto";
+
+// ============================================================================
+// Maestro backend <-> runner IPC 프로토콜 (ADR-0002 O-2: gRPC)
+//
+// 토폴로지: 백엔드가 단일 gRPC 서버를 운용하고, 각 러너(스크립트별 JVM 프로세스)가
+// 기동 시 백엔드로 아웃바운드 접속해 단일 양방향 스트림 Session 을 연다.
+//   - 러너 -> 백엔드: 핸드셰이크, 상태/로그/메트릭, 플로우 emit, 상태저장 요청
+//   - 백엔드 -> 러너: start/stop/주기변경 명령, 하류 메시지 전달, 상태저장 응답
+// 이 방향성으로 수백 프로세스에서도 인바운드 포트 할당/바인딩이 불필요하다.
+// 핸드셰이크 토큰으로 IPC 신뢰 경계를 보호한다(분석 위협모델 T-9).
+// ============================================================================
+
+service RunnerGateway {
+  // 러너 1개당 하나의 장기 양방향 스트림. 첫 메시지는 반드시 Hello.
+  rpc Session(stream RunnerMessage) returns (stream BackendMessage);
+}
+
+// ---------------------------------------------------------------------------
+// 러너 -> 백엔드
+// ---------------------------------------------------------------------------
+message RunnerMessage {
+  oneof payload {
+    Hello         hello          = 1;  // 최초 1회: 신원/토큰
+    StatusReport  status         = 2;  // 라이프사이클 상태 전이 보고
+    LogRecord     log            = 3;  // 구조적 로그
+    MetricSample  metric         = 4;  // heap/CPU/tick/error 메트릭
+    EmitMessage   emit           = 5;  // 플로우 출력 포트로 emit
+    StateOp       state_op       = 6;  // KeyValueStore get/put/remove
+    CommandAck    ack            = 7;  // 백엔드 명령 처리 결과
+  }
+}
+
+message Hello {
+  string runner_id   = 1;  // 백엔드가 발급한 러너 인스턴스 ID
+  string script_id   = 2;  // 논리 스크립트 ID
+  string auth_token  = 3;  // 기동 시 주입된 1회용 핸드셰이크 토큰(T-9)
+  string sdk_version = 4;
+}
+
+enum LifecycleState {
+  LIFECYCLE_STATE_UNSPECIFIED = 0;
+  COMPILING = 1;   // 동적 컴파일 중
+  STARTING  = 2;   // onStart 실행 중
+  RUNNING   = 3;   // onTick 스케줄 동작 중
+  STOPPING  = 4;   // onEnd 실행 중(graceful)
+  STOPPED   = 5;   // 정상 종료 완료
+  ERROR     = 6;   // onStart 실패/치명 오류 → onEnd 후 종료
+}
+
+message StatusReport {
+  LifecycleState state      = 1;
+  int64          epoch_ms   = 2;  // 보고 시각(러너 단조시계 기준 epoch ms)
+  string         detail     = 3;  // 상태 부가 설명/에러 요약
+  CompileDiagnostics diags  = 4;  // COMPILING 결과 진단(있을 때)
+}
+
+message CompileDiagnostics {
+  bool   success = 1;
+  repeated Diagnostic items = 2;
+}
+
+message Diagnostic {
+  enum Kind { KIND_UNSPECIFIED = 0; ERROR = 1; WARNING = 2; NOTE = 3; }
+  Kind   kind    = 1;
+  int64  line    = 2;
+  int64  column  = 3;
+  string code    = 4;   // 컴파일러 진단 코드
+  string message = 5;
+}
+
+message LogRecord {
+  enum Level { LEVEL_UNSPECIFIED = 0; TRACE = 1; DEBUG = 2; INFO = 3; WARN = 4; ERROR = 5; }
+  Level  level     = 1;
+  int64  epoch_ms  = 2;
+  string message   = 3;
+  string thrown    = 4;  // 스택트레이스(있을 때)
+}
+
+message MetricSample {
+  int64  epoch_ms        = 1;
+  int64  heap_used_bytes = 2;
+  int64  heap_max_bytes  = 3;
+  double process_cpu_load= 4;  // 0.0~1.0 (OperatingSystemMXBean)
+  int64  tick_count      = 5;
+  int64  error_count     = 6;
+  int64  uptime_ms       = 7;
+  double last_tick_ms    = 8;  // 최근 onTick 소요시간
+}
+
+message EmitMessage {
+  string port         = 1;  // 출력 포트 이름
+  bytes  payload_json = 2;  // 직렬화된 메시지(JSON)
+  string content_type = 3;  // 기본 application/json
+}
+
+message StateOp {
+  enum Op { OP_UNSPECIFIED = 0; GET = 1; PUT = 2; REMOVE = 3; CONTAINS = 4; }
+  string correlation_id = 1;  // StateResult와 매칭
+  Op     op             = 2;
+  string key            = 3;
+  bytes  value_json     = 4;  // PUT일 때
+}
+
+message CommandAck {
+  string command_id = 1;
+  bool   accepted   = 2;
+  string detail     = 3;
+}
+
+// ---------------------------------------------------------------------------
+// 백엔드 -> 러너
+// ---------------------------------------------------------------------------
+message BackendMessage {
+  oneof payload {
+    StartCommand        start         = 1;  // 컴파일 후 onStart + tick 스케줄 개시
+    StopCommand         stop          = 2;  // graceful stop(onEnd 보장) → 타임아웃 시 강제
+    UpdatePeriodCommand update_period = 3;  // tick 주기 변경
+    DeliverMessage      deliver       = 4;  // 상류 노드 -> 이 러너 입력 포트
+    StateResult         state_result  = 5;  // StateOp 응답
+    Heartbeat           heartbeat     = 6;  // 생존 확인(워치독 보조)
+  }
+}
+
+message StartCommand {
+  string command_id    = 1;
+  string source        = 2;  // 스크립트 자바 소스
+  string source_hash   = 3;  // 컴파일 캐시 무효화 키
+  int64  tick_period_ms= 4;  // onTick 주기(0이면 onTick 미사용)
+  map<string, string> params = 5;            // 실행 파라미터
+  TickExceptionPolicy tick_policy = 6;       // ADR-0002 O-5
+  ResourceLimits limits = 7;
+}
+
+enum TickExceptionPolicy {
+  TICK_POLICY_UNSPECIFIED = 0;
+  CONTINUE = 1;  // 기본: 예외 격리 후 다음 tick 진행
+  STOP     = 2;  // 예외 발생 시 onEnd 후 중지
+}
+
+message ResourceLimits {
+  int64 max_heap_bytes        = 1;  // -Xmx 매핑
+  int64 tick_timeout_ms       = 2;  // tick 행 감지 워치독 임계(T-3)
+  int64 onstart_timeout_ms    = 3;
+  int64 onend_timeout_ms      = 4;  // 초과 시 강제 종료(T-4)
+  int64 error_threshold       = 5;  // CONTINUE 정책에서 누적 에러 임계 → stop
+}
+
+message StopCommand {
+  string command_id      = 1;
+  int64  grace_period_ms = 2;  // graceful 종료 대기, 초과 시 강제 종료
+}
+
+message UpdatePeriodCommand {
+  string command_id     = 1;
+  int64  tick_period_ms = 2;
+}
+
+message DeliverMessage {
+  string in_port      = 1;  // 이 러너의 입력 포트
+  bytes  payload_json = 2;
+  string from_node    = 3;  // 상류 노드 ID(추적용)
+}
+
+message StateResult {
+  string correlation_id = 1;
+  bool   found          = 2;
+  bytes  value_json     = 3;
+}
+
+message Heartbeat {
+  int64 epoch_ms = 1;
+}
