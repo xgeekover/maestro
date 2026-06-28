@@ -45,3 +45,46 @@ export interface CreateRunRequest {
   tickTimeoutMs?: number
   errorThreshold?: number
 }
+
+export type NodeKind = 'SCRIPT' | 'MODULE'
+
+export interface FlowNodeModel {
+  id: string
+  kind: NodeKind
+  refId: string
+  params?: Record<string, string>
+  tickPeriodMs?: number
+}
+
+export interface FlowEdgeModel {
+  fromNode: string
+  fromPort: string
+  toNode: string
+  toPort: string
+}
+
+export interface FlowGraphModel {
+  nodes: FlowNodeModel[]
+  edges: FlowEdgeModel[]
+}
+
+export interface FlowDto {
+  id: string
+  name: string
+  graph: FlowGraphModel
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DeployResponse {
+  flowId: string
+  nodeRuns: Record<string, string>
+}
+
+export interface ModuleDto {
+  id: string
+  name: string
+  version: string
+  specJson: string
+  createdAt: string
+}

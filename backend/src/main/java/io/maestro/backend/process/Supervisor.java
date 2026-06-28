@@ -76,20 +76,29 @@ public class Supervisor {
     public RunInfo startRun(String scriptId, RunConfig config) {
         ScriptEntity script = scripts.findById(scriptId)
                 .orElseThrow(() -> new IllegalArgumentException("스크립트 없음: " + scriptId));
-        return launch(scriptId, script.getName(), script.getSource(), config);
+        return launch(scriptId, script.getName(), script.getSource(), config, null, null);
     }
 
     /** 원시 소스로 실행 시작(테스트/임시). */
     public RunInfo startRunWithSource(String name, String source, RunConfig config) {
-        return launch("inline:" + name, name, source, config);
+        return launch("inline:" + name, name, source, config, null, null);
     }
 
-    private RunInfo launch(String scriptId, String name, String source, RunConfig config) {
+    /** 플로우 노드로 실행 시작(flowId/nodeId 태깅 → emit 라우팅 대상). */
+    public RunInfo startNode(String scriptId, String name, String source, RunConfig config,
+                             String flowId, String nodeId) {
+        return launch(scriptId, name, source, config, flowId, nodeId);
+    }
+
+    private RunInfo launch(String scriptId, String name, String source, RunConfig config,
+                           String flowId, String nodeId) {
         String runId = UUID.randomUUID().toString();
         RunInfo run = new RunInfo(runId, scriptId, name, source, config);
         run.setRunnerId(UUID.randomUUID().toString());
         run.setToken(UUID.randomUUID().toString());
         run.setStartedAt(Instant.now());
+        run.setFlowId(flowId);
+        run.setNodeId(nodeId);
         registry.register(run);
         spawn(run);
         return run;
@@ -133,7 +142,7 @@ public class Supervisor {
                         .setErrorThreshold(c.errorThreshold()))
                 .build();
         try {
-            run.commandStream().onNext(BackendMessage.newBuilder().setStart(start).build());
+            run.sendCommand(BackendMessage.newBuilder().setStart(start).build());
         } catch (RuntimeException e) {
             log.warn("StartCommand 송신 실패 runId={}: {}", run.runId(), e.toString());
         }
@@ -146,17 +155,14 @@ public class Supervisor {
         }
         run.setUserStopped(true);
         run.setStatus(RunStatus.STOPPING);
-        StreamObserver<BackendMessage> stream = run.commandStream();
-        if (stream != null) {
-            try {
-                stream.onNext(BackendMessage.newBuilder()
-                        .setStop(StopCommand.newBuilder()
-                                .setCommandId(UUID.randomUUID().toString())
-                                .setGracePeriodMs(props.getRunner().getStopGraceMs()))
-                        .build());
-            } catch (RuntimeException ignored) {
-                // 스트림 끊김 — 아래 강제 종료로 처리
-            }
+        try {
+            run.sendCommand(BackendMessage.newBuilder()
+                    .setStop(StopCommand.newBuilder()
+                            .setCommandId(UUID.randomUUID().toString())
+                            .setGracePeriodMs(props.getRunner().getStopGraceMs()))
+                    .build());
+        } catch (RuntimeException ignored) {
+            // 스트림 끊김 — 아래 강제 종료로 처리
         }
         scheduler.schedule(() -> forceKill(run), props.getRunner().getStopGraceMs(), TimeUnit.MILLISECONDS);
     }

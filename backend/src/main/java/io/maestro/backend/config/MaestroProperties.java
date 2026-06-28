@@ -67,13 +67,16 @@ public class MaestroProperties {
         public void setWatchdogPeriodMs(long v) { this.watchdogPeriodMs = v; }
     }
 
-    /** 메트릭/로그 인메모리 링버퍼 크기(프로세스당). */
+    /** 메트릭/로그 인메모리 링버퍼 크기(프로세스당) + 플로우 라우팅 큐 용량. */
     public static class Buffer {
         private int metricCapacity = 600;  // ~10분 @1s
         private int logCapacity = 500;
+        private int flowQueueCapacity = 1000;  // 플로우 배포당 바운디드 큐(백프레셔)
         public int getMetricCapacity() { return metricCapacity; }
         public void setMetricCapacity(int v) { this.metricCapacity = v; }
         public int getLogCapacity() { return logCapacity; }
         public void setLogCapacity(int v) { this.logCapacity = v; }
+        public int getFlowQueueCapacity() { return flowQueueCapacity; }
+        public void setFlowQueueCapacity(int v) { this.flowQueueCapacity = v; }
     }
 }

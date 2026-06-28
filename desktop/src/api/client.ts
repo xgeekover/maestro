@@ -1,4 +1,14 @@
-import type { CreateRunRequest, LogEntry, MetricSnapshot, RunDto, ScriptDto } from '../types'
+import type {
+  CreateRunRequest,
+  DeployResponse,
+  FlowDto,
+  FlowGraphModel,
+  LogEntry,
+  MetricSnapshot,
+  ModuleDto,
+  RunDto,
+  ScriptDto,
+} from '../types'
 
 interface MaestroBridge {
   backendUrl?: string
@@ -35,4 +45,14 @@ export const api = {
   stopRun: (id: string) => http<void>(`/api/runs/${id}/stop`, { method: 'POST' }),
   metrics: (id: string) => http<MetricSnapshot[]>(`/api/runs/${id}/metrics`),
   logs: (id: string) => http<LogEntry[]>(`/api/runs/${id}/logs`),
+
+  listFlows: () => http<FlowDto[]>('/api/flows'),
+  getFlow: (id: string) => http<FlowDto>(`/api/flows/${id}`),
+  createFlow: (name: string, graph: FlowGraphModel) =>
+    http<FlowDto>('/api/flows', { method: 'POST', body: JSON.stringify({ name, graph }) }),
+  deleteFlow: (id: string) => http<void>(`/api/flows/${id}`, { method: 'DELETE' }),
+  deployFlow: (id: string) => http<DeployResponse>(`/api/flows/${id}/deploy`, { method: 'POST' }),
+  stopFlow: (id: string) => http<void>(`/api/flows/${id}/stop`, { method: 'POST' }),
+
+  listModules: () => http<ModuleDto[]>('/api/modules'),
 }

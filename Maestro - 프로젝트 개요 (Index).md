@@ -55,7 +55,8 @@ status: 기획
 - [x] Phase 3 스크립트 엔진(핵심): 동적 컴파일(`JavaCompiler` 인메모리 + 격리 ClassLoader) + 라이프사이클 엔진(onStart 1·onTick 주기·onEnd 1) + tick 예외 격리(CONTINUE/STOP/임계) + 행 워치독 + **CLI 단독 실행**. **검증: 단위 테스트 12개 그린 + CLI 스모크**. 문서 `docs/03-script-engine.md`
 - [x] Phase 4 백엔드 오케스트레이터: 러너 **독립 프로세스 기동**(ProcessBuilder) + gRPC RunnerGateway(텔레메트리) + **감시·exponential backoff 재시작** + REST(scripts/runs)/WS(logs·metrics) + 프로세스별 CPU/메모리 링버퍼 + H2/JPA. **검증: 통합 테스트로 격리+재시작 입증**(프로세스 3개 중 1개 kill → 나머지 정상 + 재시작), `./gradlew build` 그린. 문서 `docs/04-orchestrator.md`
 - [x] Phase 5 데스크탑: Electron+React+**Monaco**(Java 언어·SDK 자동완성/호버) + 스크립트 **CRUD**(+백엔드 PUT/DELETE) + 실행/중지·상태·로그·메트릭 실시간(REST/WS) + **JDT LS 연동 스파이크**(기동 모듈·다운로드·클래스패스 설계). **검증: `pnpm typecheck/build` 그린 + REST 라운드트립 테스트(작성→실행→상태→중지)**. 헤드리스라 GUI 클릭/JDT 풀시맨틱은 후속. 문서 `docs/05-desktop.md`
-- [ ] **Phase 6(플로우 & 모듈: React Flow) 착수 승인 대기** → 노드 와이어링·메시지 라우팅·모듈
-- 상태: **데스크탑 완료 · 작성→실행→상태 왕복 입증 · Phase 6 대기**
+- [x] Phase 6 플로우 & 모듈: 백엔드 **플로우 라우팅**(노드 emit→하류 DeliverMessage, **DAG 강제**·바운디드 큐 백프레셔) + **모듈**(semver·포트 스펙·인스턴스화) + REST(flows/modules) + **React Flow 캔버스**(뷰 전환). **검증: 통합 테스트로 2노드 메시지 분산 처리 시연(producer→consumer) + DAG 거부 + `pnpm build` 그린**. 문서 `docs/06-flow.md`
+- [ ] **Phase 7(대시보드) 착수 승인 대기** → 프로세스 상태 + CPU/메모리 차트 + 실시간 로그
+- 상태: **플로우 완료 · 프로세스 간 메시지 분산 입증 · Phase 7 대기**
 
 #project #maestro #java #platform #index

@@ -2,6 +2,7 @@ package io.maestro.backend.grpc;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.maestro.backend.flow.FlowRuntime;
 import io.maestro.backend.process.RunInfo;
 import io.maestro.backend.process.RunRegistry;
 import io.maestro.backend.process.RunStatus;
@@ -33,11 +34,14 @@ public class RunnerGatewayService extends RunnerGatewayGrpc.RunnerGatewayImplBas
     private final RunRegistry registry;
     private final TelemetryStore telemetry;
     private final Supervisor supervisor;
+    private final FlowRuntime flowRuntime;
 
-    public RunnerGatewayService(RunRegistry registry, TelemetryStore telemetry, Supervisor supervisor) {
+    public RunnerGatewayService(RunRegistry registry, TelemetryStore telemetry, Supervisor supervisor,
+                                FlowRuntime flowRuntime) {
         this.registry = registry;
         this.telemetry = telemetry;
         this.supervisor = supervisor;
+        this.flowRuntime = flowRuntime;
     }
 
     @Override
@@ -71,8 +75,14 @@ public class RunnerGatewayService extends RunnerGatewayGrpc.RunnerGatewayImplBas
                                     m.getTickCount(), m.getErrorCount(), m.getUptimeMs(), m.getLastTickMs()));
                         }
                     }
-                    case EMIT, STATE_OP, ACK, PAYLOAD_NOT_SET -> {
-                        // EMIT: Phase 6 플로우 라우팅. STATE_OP/ACK: Phase 4 미사용.
+                    case EMIT -> {
+                        if (run != null) {
+                            run.touchTelemetry();
+                            flowRuntime.route(run, msg.getEmit().getPort(), msg.getEmit().getPayloadJson());
+                        }
+                    }
+                    case STATE_OP, ACK, PAYLOAD_NOT_SET -> {
+                        // STATE_OP/ACK: Phase 4 미사용.
                     }
                 }
             }

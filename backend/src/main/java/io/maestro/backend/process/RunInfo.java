@@ -26,6 +26,8 @@ public final class RunInfo {
     private volatile String lastError;
     private volatile StreamObserver<BackendMessage> commandStream;
     private volatile long lastTelemetryNanos = System.nanoTime();
+    private volatile String flowId;   // 플로우 배포로 기동된 경우
+    private volatile String nodeId;
 
     public RunInfo(String runId, String scriptId, String scriptName, String source, RunConfig config) {
         this.runId = runId;
@@ -68,6 +70,19 @@ public final class RunInfo {
     public StreamObserver<BackendMessage> commandStream() { return commandStream; }
     public void setCommandStream(StreamObserver<BackendMessage> s) { this.commandStream = s; }
 
+    /** 명령 송신을 스트림별로 직렬화(gRPC StreamObserver는 스레드 안전하지 않음). */
+    public synchronized void sendCommand(BackendMessage msg) {
+        StreamObserver<BackendMessage> s = commandStream;
+        if (s != null) {
+            s.onNext(msg);
+        }
+    }
+
     public void touchTelemetry() { this.lastTelemetryNanos = System.nanoTime(); }
     public long lastTelemetryNanos() { return lastTelemetryNanos; }
+
+    public String flowId() { return flowId; }
+    public void setFlowId(String v) { this.flowId = v; }
+    public String nodeId() { return nodeId; }
+    public void setNodeId(String v) { this.nodeId = v; }
 }
