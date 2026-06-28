@@ -7,6 +7,7 @@ import type {
   MetricSnapshot,
   ModuleDto,
   RunDto,
+  RunSummary,
   ScriptDto,
 } from '../types'
 
@@ -55,4 +56,6 @@ export const api = {
   stopFlow: (id: string) => http<void>(`/api/flows/${id}/stop`, { method: 'POST' }),
 
   listModules: () => http<ModuleDto[]>('/api/modules'),
+
+  dashboard: () => http<RunSummary[]>('/api/dashboard'),
 }

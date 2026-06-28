@@ -88,3 +88,8 @@ export interface ModuleDto {
   specJson: string
   createdAt: string
 }
+
+export interface RunSummary {
+  run: RunDto
+  latest: MetricSnapshot | null
+}

@@ -5,6 +5,7 @@ import io.maestro.backend.flow.FlowEntity;
 import io.maestro.backend.flow.FlowModel.FlowGraph;
 import io.maestro.backend.module.ModuleEntity;
 import io.maestro.backend.process.RunInfo;
+import io.maestro.backend.telemetry.MetricSnapshot;
 
 import java.time.Instant;
 import java.util.Map;
@@ -52,6 +53,9 @@ public final class Dtos {
     }
 
     public record DeployResponse(String flowId, Map<String, String> nodeRuns) {}
+
+    // ---- 대시보드 ----
+    public record RunSummary(RunResponse run, MetricSnapshot latest) {}
 
     // ---- 모듈 ----
     public record CreateModuleRequest(String name, String version, String specJson, String source) {}

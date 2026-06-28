@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from './api/client'
+import { Dashboard } from './components/Dashboard'
 import { FlowCanvas } from './components/FlowCanvas'
 import { LogsPanel } from './components/LogsPanel'
 import { MetricsPanel } from './components/MetricsPanel'
@@ -8,7 +9,7 @@ import { ScriptEditor } from './components/ScriptEditor'
 import { ScriptList } from './components/ScriptList'
 import type { RunDto, ScriptDto } from './types'
 
-type View = 'scripts' | 'flows'
+type View = 'scripts' | 'flows' | 'dashboard'
 
 export default function App() {
   const [scripts, setScripts] = useState<ScriptDto[]>([])
@@ -95,6 +96,12 @@ export default function App() {
           >
             플로우
           </button>
+          <button
+            className={view === 'dashboard' ? 'tab active' : 'tab'}
+            onClick={() => setView('dashboard')}
+          >
+            대시보드
+          </button>
         </nav>
         {error && (
           <span className="err" title={error}>
@@ -102,7 +109,7 @@ export default function App() {
           </span>
         )}
       </header>
-      {view === 'scripts' ? (
+      {view === 'scripts' && (
         <div className="app-body">
           <aside className="sidebar">
             <ScriptList
@@ -126,9 +133,15 @@ export default function App() {
             <LogsPanel runId={selectedRunId} />
           </aside>
         </div>
-      ) : (
+      )}
+      {view === 'flows' && (
         <div className="app-body-flow">
           <FlowCanvas scripts={scripts} />
+        </div>
+      )}
+      {view === 'dashboard' && (
+        <div className="app-body-flow">
+          <Dashboard />
         </div>
       )}
     </div>

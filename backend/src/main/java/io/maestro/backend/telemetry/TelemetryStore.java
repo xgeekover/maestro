@@ -38,6 +38,12 @@ public class TelemetryStore {
         return b == null ? List.of() : b.snapshot();
     }
 
+    /** 런의 최신 메트릭 샘플(대시보드 개요용). */
+    public java.util.Optional<MetricSnapshot> latest(String runId) {
+        List<MetricSnapshot> all = metrics(runId);
+        return all.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(all.get(all.size() - 1));
+    }
+
     public List<LogEntry> logs(String runId) {
         RingBuffer<LogEntry> b = logs.get(runId);
         return b == null ? List.of() : b.snapshot();

@@ -72,7 +72,8 @@ docker run -p 8080:8080 maestro-backend
 - [x] **Phase 4** 백엔드 오케스트레이터: 기동/감시/재시작·gRPC·REST/WS·메트릭 (격리+재시작 통합테스트 입증)
 - [x] **Phase 5** 데스크탑: Electron+React+Monaco(SDK 보조)·스크립트 CRUD·실행/상태·로그/메트릭 + JDT LS 스파이크 (REST 라운드트립 입증)
 - [x] **Phase 6** 플로우 & 모듈: 라우팅(DAG·백프레셔)·모듈·React Flow 캔버스 (2노드 분산처리 통합테스트 입증)
-- [ ] **Phase 7** 대시보드 · [ ] **Phase 8** 테스트 · [ ] **Phase 9** 시뮬레이션 · [ ] **Phase 10** 배포
+- [x] **Phase 7** 대시보드: /api/dashboard 집계 + 프로세스 그리드·CPU/메모리 스파크라인·실시간 로그 (부하 반영 통합테스트 입증)
+- [ ] **Phase 8** 테스트 · [ ] **Phase 9** 시뮬레이션 · [ ] **Phase 10** 배포
 
 ## 데스크탑 실행
 ```bash
