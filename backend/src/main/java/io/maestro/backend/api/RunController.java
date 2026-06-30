@@ -1,5 +1,6 @@
 package io.maestro.backend.api;
 
+import io.maestro.backend.history.RunHistoryService;
 import io.maestro.backend.process.RunConfig;
 import io.maestro.backend.process.RunConfigFactory;
 import io.maestro.backend.process.RunInfo;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,13 +32,15 @@ public class RunController {
     private final RunRegistry registry;
     private final TelemetryStore telemetry;
     private final RunConfigFactory configFactory;
+    private final RunHistoryService history;
 
     public RunController(Supervisor supervisor, RunRegistry registry, TelemetryStore telemetry,
-                         RunConfigFactory configFactory) {
+                         RunConfigFactory configFactory, RunHistoryService history) {
         this.supervisor = supervisor;
         this.registry = registry;
         this.telemetry = telemetry;
         this.configFactory = configFactory;
+        this.history = history;
     }
 
     @PostMapping
@@ -53,6 +57,21 @@ public class RunController {
     @GetMapping
     public List<Dtos.RunResponse> list() {
         return registry.all().stream().map(Dtos.RunResponse::of).toList();
+    }
+
+    /** 완료된 실행 이력(영속, 재시작 후에도 조회). 페이지네이션. */
+    @GetMapping("/history")
+    public List<Dtos.RunHistoryResponse> history(@RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "50") int size) {
+        return history.recent(page, size).stream().map(Dtos.RunHistoryResponse::of).toList();
+    }
+
+    @GetMapping("/history/{runId}")
+    public ResponseEntity<Dtos.RunHistoryResponse> historyOne(@PathVariable String runId) {
+        return history.get(runId)
+                .map(Dtos.RunHistoryResponse::of)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{runId}")

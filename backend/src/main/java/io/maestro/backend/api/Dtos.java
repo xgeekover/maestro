@@ -3,6 +3,7 @@ package io.maestro.backend.api;
 import io.maestro.backend.domain.ScriptEntity;
 import io.maestro.backend.flow.FlowEntity;
 import io.maestro.backend.flow.FlowModel.FlowGraph;
+import io.maestro.backend.history.RunHistoryEntity;
 import io.maestro.backend.module.ModuleEntity;
 import io.maestro.backend.process.RunInfo;
 import io.maestro.backend.telemetry.MetricSnapshot;
@@ -69,6 +70,17 @@ public final class Dtos {
 
     // ---- 대시보드 ----
     public record RunSummary(RunResponse run, MetricSnapshot latest) {}
+
+    // ---- 실행 이력 ----
+    public record RunHistoryResponse(String runId, String scriptId, String scriptName, String status,
+                                     long pid, int restartCount, Instant startedAt, Instant endedAt,
+                                     String lastError, String flowId, String nodeId) {
+        public static RunHistoryResponse of(RunHistoryEntity e) {
+            return new RunHistoryResponse(e.getRunId(), e.getScriptId(), e.getScriptName(), e.getStatus(),
+                    e.getPid(), e.getRestartCount(), e.getStartedAt(), e.getEndedAt(), e.getLastError(),
+                    e.getFlowId(), e.getNodeId());
+        }
+    }
 
     // ---- 모듈 ----
     public record CreateModuleRequest(

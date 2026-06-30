@@ -44,16 +44,19 @@ public class Supervisor {
     private final ScriptRepository scripts;
     private final MaestroProperties props;
     private final io.maestro.backend.telemetry.TelemetryStore telemetry;
+    private final io.maestro.backend.history.RunHistoryService history;
     private ScheduledExecutorService scheduler;
 
     public Supervisor(RunRegistry registry, ProcessManager processManager,
                       ScriptRepository scripts, MaestroProperties props,
-                      io.maestro.backend.telemetry.TelemetryStore telemetry) {
+                      io.maestro.backend.telemetry.TelemetryStore telemetry,
+                      io.maestro.backend.history.RunHistoryService history) {
         this.registry = registry;
         this.processManager = processManager;
         this.scripts = scripts;
         this.props = props;
         this.telemetry = telemetry;
+        this.history = history;
     }
 
     @PostConstruct
@@ -187,9 +190,22 @@ public class Supervisor {
     private void watchdogCheck() {
         for (RunInfo run : registry.all()) {
             try {
+                recordHistoryIfTerminal(run);
                 checkOne(run);
             } catch (RuntimeException e) {
                 log.warn("워치독 점검 오류 runId={}: {}", run.runId(), e.toString());
+            }
+        }
+    }
+
+    /** 종료된 실행을 이력에 1회 영속(재시작 후 조회 가능). */
+    private void recordHistoryIfTerminal(RunInfo run) {
+        if (run.status().isTerminal() && !run.isHistoryRecorded()) {
+            try {
+                history.record(run);
+                run.setHistoryRecorded(true);
+            } catch (RuntimeException e) {
+                log.warn("이력 기록 실패 runId={}: {}", run.runId(), e.toString());
             }
         }
     }
