@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from './api/client'
 import { Dashboard } from './components/Dashboard'
 import { FlowCanvas } from './components/FlowCanvas'
+import { HistoryView } from './components/HistoryView'
 import { LogsPanel } from './components/LogsPanel'
 import { MetricsPanel } from './components/MetricsPanel'
+import { RunControlBar } from './components/RunControlBar'
 import { RunPanel } from './components/RunPanel'
+import type { RunConfig } from './components/RunLauncher'
 import { ScriptEditor } from './components/ScriptEditor'
 import { ScriptList } from './components/ScriptList'
 import type { RunDto, ScriptDto } from './types'
 
-type View = 'scripts' | 'flows' | 'dashboard'
+type View = 'scripts' | 'flows' | 'dashboard' | 'history'
 
 export default function App() {
   const [scripts, setScripts] = useState<ScriptDto[]>([])
@@ -60,11 +63,12 @@ export default function App() {
     }
   }
 
-  const onRun = async (scriptId: string) => {
+  const onRun = async (scriptId: string, config: RunConfig) => {
     try {
-      const run = await api.startRun({ scriptId, tickPeriodMs: 1000 })
+      const run = await api.startRun({ scriptId, ...config })
       setSelectedRunId(run.runId)
       refreshRuns()
+      setError(null)
     } catch (e) {
       setError(String(e))
     }
@@ -78,6 +82,20 @@ export default function App() {
       // 무시
     }
   }
+
+  const onUpdatePeriod = async (runId: string, tickPeriodMs: number) => {
+    try {
+      await api.updatePeriod(runId, tickPeriodMs)
+      setError(null)
+    } catch (e) {
+      setError(String(e))
+    }
+  }
+
+  const selectedRun = useMemo(
+    () => runs.find((r) => r.runId === selectedRunId) ?? null,
+    [runs, selectedRunId],
+  )
 
   return (
     <div className="app">
@@ -101,6 +119,12 @@ export default function App() {
             onClick={() => setView('dashboard')}
           >
             대시보드
+          </button>
+          <button
+            className={view === 'history' ? 'tab active' : 'tab'}
+            onClick={() => setView('history')}
+          >
+            이력
           </button>
         </nav>
         {error && (
@@ -129,6 +153,7 @@ export default function App() {
               onSelect={setSelectedRunId}
               onStop={onStop}
             />
+            <RunControlBar run={selectedRun} onUpdatePeriod={onUpdatePeriod} />
             <MetricsPanel runId={selectedRunId} />
             <LogsPanel runId={selectedRunId} />
           </aside>
@@ -142,6 +167,11 @@ export default function App() {
       {view === 'dashboard' && (
         <div className="app-body-flow">
           <Dashboard />
+        </div>
+      )}
+      {view === 'history' && (
+        <div className="app-body-flow">
+          <HistoryView />
         </div>
       )}
     </div>

@@ -1,12 +1,13 @@
 import Editor from '@monaco-editor/react'
 import { useEffect, useState } from 'react'
 import type { ScriptDto } from '../types'
+import { RunLauncher, type RunConfig } from './RunLauncher'
 
 interface Props {
   script: ScriptDto | null // null = 새 스크립트
   onSave: (name: string, source: string, id?: string) => void
   onDelete: (id: string) => void
-  onRun: (id: string) => void
+  onRun: (id: string, config: RunConfig) => void
 }
 
 const DEFAULT_SOURCE = `import io.maestro.sdk.Script;
@@ -52,11 +53,7 @@ export function ScriptEditor({ script, onSave, onDelete, onRun }: Props) {
         <button onClick={() => onSave(name, source, script?.id)} disabled={!name.trim()}>
           {script ? '저장' : '생성'}
         </button>
-        {script && (
-          <button className="primary" onClick={() => onRun(script.id)}>
-            ▶ 실행
-          </button>
-        )}
+        {script && <RunLauncher onRun={(cfg) => onRun(script.id, cfg)} />}
         {script && (
           <button className="danger" onClick={() => onDelete(script.id)}>
             삭제

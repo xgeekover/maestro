@@ -379,3 +379,176 @@ button.mini {
 .log-line.lvl-WARN .lvl {
   color: #d29922;
 }
+
+/* 실행 설정(RunLauncher) */
+.run-launcher {
+  position: relative;
+  display: flex;
+  gap: 4px;
+}
+.run-config {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  z-index: 20;
+  width: 260px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 8px 24px #0008;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.run-config label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.run-config label.row {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+.run-config input,
+.run-config textarea {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+.run-config label.row input {
+  flex: none;
+}
+.run-config textarea {
+  resize: vertical;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+.run-config details summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--muted);
+}
+.run-config details {
+  display: flex;
+  flex-direction: column;
+}
+.run-config details label {
+  margin-top: 6px;
+}
+.rc-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 실행 제어 바(RunControlBar) */
+.run-control-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--panel2);
+}
+.rcb-status {
+  font-weight: 600;
+  font-size: 12px;
+}
+.period-ctl {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.period-ctl input {
+  width: 80px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 12px;
+}
+
+/* 실행 이력(HistoryView) */
+.history-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.history-view .toolbar strong {
+  font-size: 13px;
+}
+.hv-error {
+  color: var(--red);
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.hv-table-host {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+.hv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.hv-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  text-align: left;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+}
+.hv-table tbody tr {
+  border-bottom: 1px solid var(--panel2);
+  cursor: pointer;
+}
+.hv-table tbody tr:hover {
+  background: var(--panel2);
+}
+.hv-table tbody tr.has-error td:first-child {
+  border-left: 2px solid var(--red);
+}
+.hv-table td {
+  padding: 6px 12px;
+}
+.hv-table td .dot {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.hv-table .mono {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  color: var(--muted);
+}
+.hv-detail td {
+  background: var(--bg);
+}
+.hv-error-detail {
+  margin: 0;
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--red);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+}
+.hv-empty {
+  padding: 20px;
+  text-align: center;
+}
