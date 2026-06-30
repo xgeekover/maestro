@@ -196,12 +196,33 @@ public class Supervisor {
 
     private void checkOne(RunInfo run) {
         if (run.status().isTerminal()) {
+            run.setDeathPendingSinceNanos(0);
             return;
         }
         Process p = run.process();
-        if (p != null && !p.isAlive()) {
-            handleProcessDeath(run, p.exitValue());
+        if (p == null || p.isAlive()) {
+            run.setDeathPendingSinceNanos(0);
+            return;
         }
+        // 프로세스 사망(상태 비종료). 사용자 중지는 즉시 종료 처리.
+        if (run.userStopped()) {
+            run.setStatus(RunStatus.STOPPED);
+            return;
+        }
+        // QA H-7: 자가종료(STOP/에러/행) 시 종료 상태 보고가 인플라이트일 수 있으므로 grace 대기.
+        // grace 동안 종료 상태가 도착하면 위 isTerminal()에서 스킵 → 부활 방지.
+        // grace 경과 후에도 비종료면 진짜 돌연사(kill -9 등) → 재시작.
+        long now = System.nanoTime();
+        long pending = run.deathPendingSinceNanos();
+        if (pending == 0) {
+            run.setDeathPendingSinceNanos(now);
+            return;
+        }
+        if (now - pending < props.getRestart().getDeathGraceMs() * 1_000_000L) {
+            return;
+        }
+        run.setDeathPendingSinceNanos(0);
+        handleProcessDeath(run, p.exitValue());
     }
 
     private void handleProcessDeath(RunInfo run, int exitCode) {

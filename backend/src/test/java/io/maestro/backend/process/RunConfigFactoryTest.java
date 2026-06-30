@@ -19,6 +19,7 @@ class RunConfigFactoryTest {
         RunConfig c = f.forRun(1000L, Map.of(), false, null, null, null);
         assertEquals(30_000, c.tickTimeoutMs(), "행 워치독 기본값 강제(0 아님)");
         assertEquals(512 * MB, c.maxHeapBytes(), "heap 캡 기본값 강제");
+        assertEquals(30_000, c.onStartTimeoutMs(), "onStart 행 워치독 기본값 강제(QA H-6)");
     }
 
     @Test

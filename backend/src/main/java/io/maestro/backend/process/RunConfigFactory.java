@@ -44,7 +44,7 @@ public class RunConfigFactory {
                 Boolean.TRUE.equals(stopOnError),
                 heap,
                 tickTimeout,
-                0,
+                l.getDefaultOnStartTimeoutMs(),   // QA H-6: onStart 행 바운드
                 l.getDefaultOnEndTimeoutMs(),
                 errThreshold);
     }

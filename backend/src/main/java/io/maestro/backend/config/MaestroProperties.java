@@ -72,6 +72,8 @@ public class MaestroProperties {
         private int maxAttempts = 5;
         /** 워치독 점검 주기(ms). */
         private long watchdogPeriodMs = 500;
+        /** 프로세스 사망 후 재시작 전 대기(QA H-7): 인플라이트 종료 신호 도착 유예 → 자가종료 부활 방지. */
+        private long deathGraceMs = 800;
 
         public long getBaseDelayMs() { return baseDelayMs; }
         public void setBaseDelayMs(long v) { this.baseDelayMs = v; }
@@ -81,6 +83,8 @@ public class MaestroProperties {
         public void setMaxAttempts(int v) { this.maxAttempts = v; }
         public long getWatchdogPeriodMs() { return watchdogPeriodMs; }
         public void setWatchdogPeriodMs(long v) { this.watchdogPeriodMs = v; }
+        public long getDeathGraceMs() { return deathGraceMs; }
+        public void setDeathGraceMs(long v) { this.deathGraceMs = v; }
     }
 
     /** 메트릭/로그 인메모리 링버퍼 크기(프로세스당) + 플로우 라우팅 큐 용량. */
@@ -103,6 +107,7 @@ public class MaestroProperties {
     public static class Limits {
         private long minTickPeriodMs = 10;
         private long defaultTickTimeoutMs = 30_000;          // 기본 행 워치독(0=무제한 방지)
+        private long defaultOnStartTimeoutMs = 30_000;       // QA H-6: onStart 행 바운드(0=무제한 방지)
         private long maxTickTimeoutMs = 300_000;
         private long defaultMaxHeapBytes = 512L * 1024 * 1024; // 기본 heap 캡
         private long maxMaxHeapBytes = 4L * 1024 * 1024 * 1024;
@@ -116,6 +121,8 @@ public class MaestroProperties {
         public void setMinTickPeriodMs(long v) { this.minTickPeriodMs = v; }
         public long getDefaultTickTimeoutMs() { return defaultTickTimeoutMs; }
         public void setDefaultTickTimeoutMs(long v) { this.defaultTickTimeoutMs = v; }
+        public long getDefaultOnStartTimeoutMs() { return defaultOnStartTimeoutMs; }
+        public void setDefaultOnStartTimeoutMs(long v) { this.defaultOnStartTimeoutMs = v; }
         public long getMaxTickTimeoutMs() { return maxTickTimeoutMs; }
         public void setMaxTickTimeoutMs(long v) { this.maxTickTimeoutMs = v; }
         public long getDefaultMaxHeapBytes() { return defaultMaxHeapBytes; }

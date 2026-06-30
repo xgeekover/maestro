@@ -27,6 +27,7 @@ public final class RunInfo {
     private volatile StreamObserver<BackendMessage> commandStream;
     private volatile long lastTelemetryNanos = System.nanoTime();
     private volatile long terminalSinceNanos = 0; // 종료(STOPPED/ERROR) 최초 진입 시각 → 회수 판정
+    private volatile long deathPendingSinceNanos = 0; // 프로세스 사망 최초 감지 시각 → 재시작 grace(H-7)
     private volatile String flowId;   // 플로우 배포로 기동된 경우
     private volatile String nodeId;
 
@@ -61,6 +62,9 @@ public final class RunInfo {
         this.status = s;
     }
     public long terminalSinceNanos() { return terminalSinceNanos; }
+
+    public long deathPendingSinceNanos() { return deathPendingSinceNanos; }
+    public void setDeathPendingSinceNanos(long v) { this.deathPendingSinceNanos = v; }
 
     public Instant startedAt() { return startedAt; }
     public void setStartedAt(Instant t) { this.startedAt = t; }
