@@ -25,12 +25,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus   # QA M-1: 표준 메트릭 노출
 
 # Maestro 오케스트레이터 설정
 maestro:
   grpc:
     port: 9090            # 러너 텔레메트리 수신 gRPC 포트 (테스트는 0=임의)
+    bind-address: 127.0.0.1   # QA H-1: 기본 루프백(전 인터페이스 노출 금지). 다중호스트 시 0.0.0.0
+  cors:                  # QA M-6: 허용 오리진(와일드카드 금지). 외부/Electron 배포 시 추가
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:4173
+      - http://localhost:3000
   runner:
     backend-host: 127.0.0.1
     stop-grace-ms: 5000

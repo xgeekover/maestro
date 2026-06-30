@@ -122,3 +122,26 @@
 - ✅ **기능적으로 완성도 높음**: 핵심 가치(동적 컴파일·격리·플로우·관측)가 라이브로 입증.
 - ⚠️ **프로덕션 강화 필요**: 보안(인증·샌드박스)·입력검증·영속성·일부 복원력/관측성 갭. 대부분 **설계 자산이 이미 존재**하므로 본구현 비용이 낮다.
 - 🎯 **즉시 권고**: 위 Quick win 6종은 신뢰모델을 바꾸지 않고도 위험을 크게 낮춘다 — 우선 적용 권장.
+
+---
+
+## 6. 해결 현황 (Quick wins 적용 — 2026-06-30)
+
+QA 직후 신뢰모델을 바꾸지 않는 Quick win을 3개 배치로 적용·검증 완료(테스트 동반).
+
+| 항목 | 상태 | 조치 | 커밋 |
+|---|---|---|---|
+| **C-2** 기본 리소스 한도 OFF | ✅ 해결 | `RunConfigFactory`로 tickTimeout/maxHeap **기본값 강제(30s/512MB)** + 상한 클램프(REST·플로우 공통). 무한루프 기본 워치독 적용 | `b7ea21e` |
+| **H-4** 인메모리 무한 증가 | ✅ 해결 | 종료 런 **TTL 회수**(RunRegistry/Telemetry evict + 스윕, 기본 10분/상한 1000) | `b7ea21e` |
+| **H-2** 입력 검증 전무 | ✅ 해결 | Bean Validation(@NotBlank/@PositiveOrZero/@Size 256KB) + `@Valid`. **null name 500 제거** | `320443c` |
+| **H-3** 예외 매핑 부족 | ✅ 해결 | `NotFoundException`→404, 검증→400, 도메인→422, 표준 에러 엔벨로프({status,error,details}), 내부오류 비노출 | `320443c` |
+| **H-1** gRPC 신뢰경계 | ✅ 완화 | gRPC **루프백 바인딩(127.0.0.1, 설정화)** — 전 인터페이스 노출 제거. (mTLS·토큰 stdin은 후속) | `(batch3)` |
+| **M-6** CORS 와일드카드 | ✅ 해결 | 허용 오리진 **설정화**(기본 localhost), `*` 제거 | `(batch3)` |
+| **M-1** 메트릭 미노출 | ✅ 해결 | micrometer-prometheus + `/actuator/metrics`·`/actuator/prometheus` 노출(민감 엔드포인트는 차단 유지) | `(batch3)` |
+
+**검증 추가 테스트**: `RunConfigFactoryTest`(8)·`RunRegistryEvictionTest`(2)·`EvictionIntegrationTest`(1)·`ValidationContractTest`(14)·`ObservabilityCorsTest`(5). 전체 빌드 그린.
+
+### 남은 권고(미적용)
+- 🟥 **C-1 인증/인가 + 러너 샌드박스** — 신뢰모델(D2) 변경이 필요한 본구현. 외부 노출 계획 시 1순위(최소 토큰 인증 → JWT/소유권 → cgroup/seccomp).
+- 🟧 **H-5 영속성**(Postgres+Flyway·run 이력·KV) · **H-6/H-7 워치독 보강·재시작 레이스** · **H-8 WS 비동기화**.
+- 🟨 페이지네이션 · 동적 주기변경(UpdatePeriod 배선) · 모듈 포트검증 · 백프레셔 정책 선택 등.

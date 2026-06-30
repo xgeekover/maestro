@@ -11,19 +11,33 @@ public class MaestroProperties {
     private final Restart restart = new Restart();
     private final Buffer buffer = new Buffer();
     private final Limits limits = new Limits();
+    private final Cors cors = new Cors();
 
     public Grpc getGrpc() { return grpc; }
     public Runner getRunner() { return runner; }
     public Restart getRestart() { return restart; }
     public Buffer getBuffer() { return buffer; }
     public Limits getLimits() { return limits; }
+    public Cors getCors() { return cors; }
 
     /** 러너 텔레메트리 수신 gRPC 서버. */
     public static class Grpc {
         /** 0이면 임의 포트(테스트). 기본 9090. */
         private int port = 9090;
+        /** 바인드 주소(QA H-1: 기본 루프백 — 전 인터페이스 노출 금지). 다중호스트 시 0.0.0.0로 오버라이드. */
+        private String bindAddress = "127.0.0.1";
         public int getPort() { return port; }
         public void setPort(int port) { this.port = port; }
+        public String getBindAddress() { return bindAddress; }
+        public void setBindAddress(String v) { this.bindAddress = v; }
+    }
+
+    /** REST CORS 허용 오리진(QA M-6: 와일드카드 기본 금지). */
+    public static class Cors {
+        private java.util.List<String> allowedOrigins = java.util.List.of(
+                "http://localhost:5173", "http://localhost:4173", "http://localhost:3000");
+        public java.util.List<String> getAllowedOrigins() { return allowedOrigins; }
+        public void setAllowedOrigins(java.util.List<String> v) { this.allowedOrigins = v; }
     }
 
     /** 러너 프로세스 기동 설정. */
