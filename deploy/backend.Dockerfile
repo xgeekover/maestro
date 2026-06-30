@@ -22,11 +22,15 @@ COPY --from=build /workspace/backend/build/libs/*.jar /app/app.jar
 # 러너 클래스패스(러너 jar + sdk + protocol + grpc 의존). 백엔드가 -cp 로 러너 JVM 기동.
 COPY --from=build /workspace/runner/build/install/runner/lib /app/runner-lib
 
+# H2 파일 DB 디렉터리(영속). application.yaml 기본 url=jdbc:h2:file:./data/maestro → /app/data
+RUN mkdir -p /app/data && chown -R maestro:maestro /app/data
+
 ENV MAESTRO_RUNNER_CLASSPATH="/app/runner-lib/*" \
     MAESTRO_GRPC_PORT=9090 \
     SERVER_PORT=8080 \
     JAVA_OPTS=""
 
+VOLUME ["/app/data"]
 USER maestro
 EXPOSE 8080 9090
 

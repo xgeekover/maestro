@@ -15,9 +15,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("io.micrometer:micrometer-registry-prometheus")  // QA M-1: /actuator/prometheus
 
-    // 영속화: H2 시작 + Postgres 전환경로 (ADR-0002 O-1). Flyway 마이그레이션.
+    // 영속화: H2 파일모드 시작 + Postgres 전환경로 (ADR-0002 O-1). Flyway 마이그레이션.
     runtimeOnly("com.h2database:h2")
-    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-core")  // 10.10.0 — H2 핸들러 내장(별도 모듈 불필요)
+    // Postgres 전환 시: runtimeOnly("org.postgresql:postgresql") + flyway-database-postgresql
 
     // gRPC 서버 스택(러너 텔레메트리 수신). 본격 배선은 Phase 4.
     implementation("io.grpc:grpc-netty-shaded:1.66.0")
@@ -36,4 +37,9 @@ dependencies {
 // 부트 가능한 단일 jar만 생성 (Docker COPY 모호성 방지). plain jar 비활성화.
 tasks.named<Jar>("jar") {
     enabled = false
+}
+
+// 테스트는 격리된 인메모리 DB 사용(test 프로파일 → application-test.yaml).
+tasks.withType<Test>().configureEach {
+    systemProperty("spring.profiles.active", "test")
 }

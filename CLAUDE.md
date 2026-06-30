@@ -29,7 +29,7 @@ maestro/
 ```bash
 ./gradlew build              # 전체 빌드(+proto 코드생성, +bootJar)
 ./gradlew :protocol:build    # gRPC 스키마 코드 생성/컴파일
-./gradlew :backend:bootRun   # 백엔드 기동 (http://localhost:8080, /actuator/health)
+./gradlew :backend:bootRun   # 백엔드 기동 (REST 8080, gRPC 9090). 데이터는 ./data/maestro(H2 파일,Flyway)에 영속
 ./gradlew :runner:run        # 러너 스텁 실행
 ./gradlew test               # 전체 테스트(39개: 단위·계약·통합)
 ./gradlew build              # 테스트 + JaCoCo 커버리지(**/build/reports/jacoco/test/)

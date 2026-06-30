@@ -2,21 +2,22 @@ spring:
   application:
     name: maestro-backend
   datasource:
-    # 스캐폴딩/Phase4: 인메모리 H2. Phase 5에서 H2 서버모드(다중사용자, ADR-0002 O-1)로 전환.
-    url: jdbc:h2:mem:maestro;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    # H2 파일모드(재시작 후 데이터 보존). 운영/다중사용자는 Postgres로 전환(ADR-0002 O-1, env 오버라이드).
+    url: jdbc:h2:file:./data/maestro;MODE=PostgreSQL
     username: sa
     password: ""
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      # Phase 4: ddl-auto. Phase 5(인증/소유권)에서 Flyway 마이그레이션으로 전환.
-      ddl-auto: update
+      # Flyway가 스키마 소유 → Hibernate는 생성/수정하지 않음.
+      ddl-auto: none
     open-in-view: false
     properties:
       hibernate.format_sql: false
   flyway:
-    enabled: false
+    enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
 
 server:
   port: 8080

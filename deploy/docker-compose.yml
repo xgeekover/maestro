@@ -16,4 +16,9 @@ services:
       MAESTRO_RESTART_MAX_ATTEMPTS: "5"
       JAVA_OPTS: "-Xmx1g"
       # 다중 사용자/HA로 전환 시(ADR-0002 O-1) Postgres 환경변수로 datasource 오버라이드
+    volumes:
+      - maestro-data:/app/data   # H2 파일 DB 영속(재시작/재배포 후 데이터 보존)
     restart: unless-stopped
+
+volumes:
+  maestro-data:

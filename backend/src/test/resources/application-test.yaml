@@ -1,0 +1,5 @@
+# 테스트 전용 오버라이드 — 프로덕션 application.yaml 위에 병합됨(test 프로파일).
+# 파일 DB 대신 인메모리 H2로 격리(파일 락/잔여 파일 방지). Flyway는 그대로 스키마 생성.
+spring:
+  datasource:
+    url: jdbc:h2:mem:maestro_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
