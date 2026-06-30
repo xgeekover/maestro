@@ -12,6 +12,7 @@ public class MaestroProperties {
     private final Buffer buffer = new Buffer();
     private final Limits limits = new Limits();
     private final Cors cors = new Cors();
+    private final Ws ws = new Ws();
 
     public Grpc getGrpc() { return grpc; }
     public Runner getRunner() { return runner; }
@@ -19,6 +20,7 @@ public class MaestroProperties {
     public Buffer getBuffer() { return buffer; }
     public Limits getLimits() { return limits; }
     public Cors getCors() { return cors; }
+    public Ws getWs() { return ws; }
 
     /** 러너 텔레메트리 수신 gRPC 서버. */
     public static class Grpc {
@@ -30,6 +32,16 @@ public class MaestroProperties {
         public void setPort(int port) { this.port = port; }
         public String getBindAddress() { return bindAddress; }
         public void setBindAddress(String v) { this.bindAddress = v; }
+    }
+
+    /** WS 텔레메트리 전송(QA H-8: 수신 스레드와 분리). 구독자별 바운디드 큐 + 전송 스레드풀. */
+    public static class Ws {
+        private int queueCapacity = 1000;   // 구독자별 큐(가득 차면 드롭)
+        private int deliveryThreads = 4;    // 전송 스레드풀 크기
+        public int getQueueCapacity() { return queueCapacity; }
+        public void setQueueCapacity(int v) { this.queueCapacity = v; }
+        public int getDeliveryThreads() { return deliveryThreads; }
+        public void setDeliveryThreads(int v) { this.deliveryThreads = v; }
     }
 
     /** REST CORS 허용 오리진(QA M-6: 와일드카드 기본 금지). */
