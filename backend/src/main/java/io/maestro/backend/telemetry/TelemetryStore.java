@@ -33,6 +33,12 @@ public class TelemetryStore {
         events.publishEvent(new TelemetryEvents.LogEvent(runId, entry));
     }
 
+    /** 종료 런 회수(QA H-4): 메트릭/로그 링버퍼 해제. */
+    public void evict(String runId) {
+        metrics.remove(runId);
+        logs.remove(runId);
+    }
+
     public List<MetricSnapshot> metrics(String runId) {
         RingBuffer<MetricSnapshot> b = metrics.get(runId);
         return b == null ? List.of() : b.snapshot();

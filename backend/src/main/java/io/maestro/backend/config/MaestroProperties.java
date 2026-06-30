@@ -10,11 +10,13 @@ public class MaestroProperties {
     private final Runner runner = new Runner();
     private final Restart restart = new Restart();
     private final Buffer buffer = new Buffer();
+    private final Limits limits = new Limits();
 
     public Grpc getGrpc() { return grpc; }
     public Runner getRunner() { return runner; }
     public Restart getRestart() { return restart; }
     public Buffer getBuffer() { return buffer; }
+    public Limits getLimits() { return limits; }
 
     /** 러너 텔레메트리 수신 gRPC 서버. */
     public static class Grpc {
@@ -78,5 +80,41 @@ public class MaestroProperties {
         public void setLogCapacity(int v) { this.logCapacity = v; }
         public int getFlowQueueCapacity() { return flowQueueCapacity; }
         public void setFlowQueueCapacity(int v) { this.flowQueueCapacity = v; }
+    }
+
+    /**
+     * 실행 리소스 한도 기본값/상한 (QA C-2: 한도 OFF 방지) + 종료 런 회수(QA H-4: 메모리 누적 방지).
+     * 사용자가 명시하지 않으면 기본값을 강제하고, 명시한 값은 상한으로 클램프한다.
+     */
+    public static class Limits {
+        private long minTickPeriodMs = 10;
+        private long defaultTickTimeoutMs = 30_000;          // 기본 행 워치독(0=무제한 방지)
+        private long maxTickTimeoutMs = 300_000;
+        private long defaultMaxHeapBytes = 512L * 1024 * 1024; // 기본 heap 캡
+        private long maxMaxHeapBytes = 4L * 1024 * 1024 * 1024;
+        private long defaultOnEndTimeoutMs = 5_000;
+        // 종료(STOPPED/ERROR) 런 회수
+        private long terminalRetentionMs = 600_000;          // 종료 후 보관 시간 → 회수
+        private int maxRetainedRuns = 1000;                  // 종료 런 상한(초과 시 오래된 것부터 회수)
+        private long evictionSweepMs = 30_000;               // 회수 스윕 주기
+
+        public long getMinTickPeriodMs() { return minTickPeriodMs; }
+        public void setMinTickPeriodMs(long v) { this.minTickPeriodMs = v; }
+        public long getDefaultTickTimeoutMs() { return defaultTickTimeoutMs; }
+        public void setDefaultTickTimeoutMs(long v) { this.defaultTickTimeoutMs = v; }
+        public long getMaxTickTimeoutMs() { return maxTickTimeoutMs; }
+        public void setMaxTickTimeoutMs(long v) { this.maxTickTimeoutMs = v; }
+        public long getDefaultMaxHeapBytes() { return defaultMaxHeapBytes; }
+        public void setDefaultMaxHeapBytes(long v) { this.defaultMaxHeapBytes = v; }
+        public long getMaxMaxHeapBytes() { return maxMaxHeapBytes; }
+        public void setMaxMaxHeapBytes(long v) { this.maxMaxHeapBytes = v; }
+        public long getDefaultOnEndTimeoutMs() { return defaultOnEndTimeoutMs; }
+        public void setDefaultOnEndTimeoutMs(long v) { this.defaultOnEndTimeoutMs = v; }
+        public long getTerminalRetentionMs() { return terminalRetentionMs; }
+        public void setTerminalRetentionMs(long v) { this.terminalRetentionMs = v; }
+        public int getMaxRetainedRuns() { return maxRetainedRuns; }
+        public void setMaxRetainedRuns(int v) { this.maxRetainedRuns = v; }
+        public long getEvictionSweepMs() { return evictionSweepMs; }
+        public void setEvictionSweepMs(long v) { this.evictionSweepMs = v; }
     }
 }

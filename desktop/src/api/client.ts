@@ -16,7 +16,9 @@ interface MaestroBridge {
 }
 
 export const BACKEND_BASE: string =
-  (window as unknown as { maestro?: MaestroBridge }).maestro?.backendUrl ?? 'http://localhost:8080'
+  (window as unknown as { maestro?: MaestroBridge }).maestro?.backendUrl ??
+  import.meta.env.VITE_BACKEND_URL ??
+  'http://localhost:8080'
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BACKEND_BASE + path, {

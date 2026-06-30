@@ -42,3 +42,13 @@ maestro:
   buffer:
     metric-capacity: 600
     log-capacity: 500
+  limits:                  # 실행 리소스 한도(QA C-2) + 종료 런 회수(QA H-4)
+    default-tick-timeout-ms: 30000      # 미지정 시 행 워치독 강제(0=무제한 방지)
+    max-tick-timeout-ms: 300000
+    default-max-heap-bytes: 536870912   # 512MB 기본 heap 캡
+    max-max-heap-bytes: 4294967296      # 4GB 상한
+    min-tick-period-ms: 10
+    default-on-end-timeout-ms: 5000
+    terminal-retention-ms: 600000       # 종료 런 10분 보관 후 회수
+    max-retained-runs: 1000
+    eviction-sweep-ms: 30000

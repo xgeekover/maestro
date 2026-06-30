@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -41,25 +43,30 @@ public class Supervisor {
     private final ProcessManager processManager;
     private final ScriptRepository scripts;
     private final MaestroProperties props;
+    private final io.maestro.backend.telemetry.TelemetryStore telemetry;
     private ScheduledExecutorService scheduler;
 
     public Supervisor(RunRegistry registry, ProcessManager processManager,
-                      ScriptRepository scripts, MaestroProperties props) {
+                      ScriptRepository scripts, MaestroProperties props,
+                      io.maestro.backend.telemetry.TelemetryStore telemetry) {
         this.registry = registry;
         this.processManager = processManager;
         this.scripts = scripts;
         this.props = props;
+        this.telemetry = telemetry;
     }
 
     @PostConstruct
     public void start() {
-        scheduler = Executors.newScheduledThreadPool(2, r -> {
+        scheduler = Executors.newScheduledThreadPool(3, r -> {
             Thread t = new Thread(r, "maestro-supervisor");
             t.setDaemon(true);
             return t;
         });
         long period = props.getRestart().getWatchdogPeriodMs();
         scheduler.scheduleAtFixedRate(this::watchdogCheck, period, period, TimeUnit.MILLISECONDS);
+        long sweep = props.getLimits().getEvictionSweepMs();
+        scheduler.scheduleAtFixedRate(this::evictStale, sweep, sweep, TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
@@ -236,5 +243,40 @@ public class Supervisor {
 
     public Optional<RunInfo> find(String runId) {
         return Optional.ofNullable(registry.byRunId(runId));
+    }
+
+    // ---- 종료 런 회수 (QA H-4) ----
+
+    private void evictStale() {
+        try {
+            long now = System.nanoTime();
+            long ttlNanos = props.getLimits().getTerminalRetentionMs() * 1_000_000L;
+            // 1) TTL 초과 종료 런 회수
+            for (RunInfo run : registry.all()) {
+                if (run.status().isTerminal()
+                        && run.terminalSinceNanos() > 0
+                        && now - run.terminalSinceNanos() > ttlNanos) {
+                    evict(run);
+                }
+            }
+            // 2) 상한 초과 시 오래된 종료 런부터 회수
+            int cap = props.getLimits().getMaxRetainedRuns();
+            List<RunInfo> terminal = registry.all().stream()
+                    .filter(r -> r.status().isTerminal())
+                    .sorted(Comparator.comparingLong(RunInfo::terminalSinceNanos))
+                    .toList();
+            for (int i = 0; i < terminal.size() - cap; i++) {
+                evict(terminal.get(i));
+            }
+        } catch (RuntimeException e) {
+            log.warn("회수 스윕 오류: {}", e.toString());
+        }
+    }
+
+    private void evict(RunInfo run) {
+        processManager.kill(run.process()); // 혹시 살아있으면 정리
+        registry.remove(run);
+        telemetry.evict(run.runId());
+        log.debug("종료 런 회수 runId={}", run.runId());
     }
 }

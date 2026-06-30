@@ -26,6 +26,7 @@ public final class RunInfo {
     private volatile String lastError;
     private volatile StreamObserver<BackendMessage> commandStream;
     private volatile long lastTelemetryNanos = System.nanoTime();
+    private volatile long terminalSinceNanos = 0; // 종료(STOPPED/ERROR) 최초 진입 시각 → 회수 판정
     private volatile String flowId;   // 플로우 배포로 기동된 경우
     private volatile String nodeId;
 
@@ -53,7 +54,13 @@ public final class RunInfo {
     public long pid() { return pid; }
 
     public RunStatus status() { return status; }
-    public void setStatus(RunStatus s) { this.status = s; }
+    public void setStatus(RunStatus s) {
+        if (s.isTerminal() && !this.status.isTerminal()) {
+            this.terminalSinceNanos = System.nanoTime();
+        }
+        this.status = s;
+    }
+    public long terminalSinceNanos() { return terminalSinceNanos; }
 
     public Instant startedAt() { return startedAt; }
     public void setStartedAt(Instant t) { this.startedAt = t; }

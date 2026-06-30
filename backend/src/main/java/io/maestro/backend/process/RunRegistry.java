@@ -28,6 +28,14 @@ public class RunRegistry {
         byRunnerId.put(newRunnerId, run);
     }
 
+    /** 종료 런 회수(QA H-4): runId·runnerId 인덱스에서 제거. */
+    public void remove(RunInfo run) {
+        byRunId.remove(run.runId());
+        if (run.runnerId() != null) {
+            byRunnerId.remove(run.runnerId(), run);
+        }
+    }
+
     public RunInfo byRunId(String runId) {
         return byRunId.get(runId);
     }

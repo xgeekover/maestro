@@ -12,6 +12,7 @@ import io.maestro.backend.flow.FlowModel.NodeKind;
 import io.maestro.backend.module.ModuleEntity;
 import io.maestro.backend.module.ModuleService;
 import io.maestro.backend.process.RunConfig;
+import io.maestro.backend.process.RunConfigFactory;
 import io.maestro.backend.process.RunInfo;
 import io.maestro.backend.process.Supervisor;
 import jakarta.annotation.PreDestroy;
@@ -40,15 +41,17 @@ public class FlowRuntime {
     private final ScriptService scriptService;
     private final ModuleService moduleService;
     private final MaestroProperties props;
+    private final RunConfigFactory configFactory;
     private final Map<String, FlowDeployment> deployments = new ConcurrentHashMap<>();
 
     public FlowRuntime(Supervisor supervisor, FlowService flowService, ScriptService scriptService,
-                       ModuleService moduleService, MaestroProperties props) {
+                       ModuleService moduleService, MaestroProperties props, RunConfigFactory configFactory) {
         this.supervisor = supervisor;
         this.flowService = flowService;
         this.scriptService = scriptService;
         this.moduleService = moduleService;
         this.props = props;
+        this.configFactory = configFactory;
     }
 
     public FlowDeployment deploy(String flowId) {
@@ -63,8 +66,7 @@ public class FlowRuntime {
 
         for (FlowNode node : graph.nodes()) {
             Resolved r = resolve(node);
-            RunConfig cfg = RunConfig.defaults(
-                    node.tickPeriodMs() != null ? node.tickPeriodMs() : 1000, node.params());
+            RunConfig cfg = configFactory.forFlowNode(node.tickPeriodMs(), node.params());
             RunInfo run = supervisor.startNode(node.refId(), r.name(), r.source(), cfg, flowId, node.id());
             dep.putNodeRun(node.id(), run);
         }

@@ -1,6 +1,7 @@
 package io.maestro.backend.api;
 
 import io.maestro.backend.process.RunConfig;
+import io.maestro.backend.process.RunConfigFactory;
 import io.maestro.backend.process.RunInfo;
 import io.maestro.backend.process.RunRegistry;
 import io.maestro.backend.process.Supervisor;
@@ -27,25 +28,23 @@ public class RunController {
     private final Supervisor supervisor;
     private final RunRegistry registry;
     private final TelemetryStore telemetry;
+    private final RunConfigFactory configFactory;
 
-    public RunController(Supervisor supervisor, RunRegistry registry, TelemetryStore telemetry) {
+    public RunController(Supervisor supervisor, RunRegistry registry, TelemetryStore telemetry,
+                         RunConfigFactory configFactory) {
         this.supervisor = supervisor;
         this.registry = registry;
         this.telemetry = telemetry;
+        this.configFactory = configFactory;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Dtos.RunResponse run(@RequestBody Dtos.CreateRunRequest req) {
-        RunConfig config = new RunConfig(
-                req.tickPeriodMs() == null ? 1000 : req.tickPeriodMs(),
-                req.params() == null ? Map.of() : req.params(),
-                Boolean.TRUE.equals(req.stopOnError()),
-                req.maxHeapBytes() == null ? 0 : req.maxHeapBytes(),
-                req.tickTimeoutMs() == null ? 0 : req.tickTimeoutMs(),
-                0,
-                5000,
-                req.errorThreshold() == null ? 0 : req.errorThreshold());
+        // 기본 한도(행 워치독/heap 캡) 강제 + 상한 클램프 (QA C-2)
+        RunConfig config = configFactory.forRun(
+                req.tickPeriodMs(), req.params(), req.stopOnError(),
+                req.maxHeapBytes(), req.tickTimeoutMs(), req.errorThreshold());
         RunInfo run = supervisor.startRun(req.scriptId(), config);
         return Dtos.RunResponse.of(run);
     }
