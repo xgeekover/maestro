@@ -552,3 +552,47 @@ button.mini {
   padding: 20px;
   text-align: center;
 }
+
+/* 미저장 표시 */
+.dirty-dot {
+  color: var(--accent);
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* 확인 모달(ConfirmDialog) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #000a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 12px 40px #000a;
+}
+.modal-msg {
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+button.danger-solid {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+button.danger-solid:hover {
+  border-color: #ff6a60;
+}
