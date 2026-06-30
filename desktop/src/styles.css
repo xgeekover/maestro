@@ -349,6 +349,19 @@ button.mini {
 .metrics-panel p {
   padding: 8px 12px;
 }
+.metric-charts {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+}
+.metric-charts .mc {
+  flex: 1;
+}
+.metric-charts .dc-label {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
 
 .logs-panel {
   border-top: 1px solid var(--border);
@@ -356,6 +369,33 @@ button.mini {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+.logs-header {
+  gap: 6px;
+}
+.logs-header h3 {
+  flex: none;
+}
+.log-filter {
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 11px;
+}
+.log-search {
+  width: 90px;
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 11px;
+}
+button.mini.active {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .log-lines {
   flex: 1;
