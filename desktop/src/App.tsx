@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from './api/client'
 import { ConfirmDialog, type ConfirmSpec } from './components/ConfirmDialog'
 import { Dashboard } from './components/Dashboard'
@@ -11,6 +11,7 @@ import { RunPanel } from './components/RunPanel'
 import type { RunConfig } from './components/RunLauncher'
 import { ScriptEditor } from './components/ScriptEditor'
 import { ScriptList } from './components/ScriptList'
+import { ToastHost, type Toast, type ToastKind } from './components/ToastHost'
 import type { RunDto, ScriptDto } from './types'
 
 type View = 'scripts' | 'flows' | 'dashboard' | 'history'
@@ -22,17 +23,42 @@ export default function App() {
   const [selected, setSelected] = useState<ScriptDto | null>(null)
   const [runs, setRuns] = useState<RunDto[]>([])
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [view, setView] = useState<View>('scripts')
   const [editorDirty, setEditorDirty] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmSpec | null>(null)
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const [online, setOnline] = useState(true)
+  const toastSeq = useRef(0)
+
+  const pushToast = useCallback((kind: ToastKind, message: string) => {
+    const id = ++toastSeq.current
+    setToasts((t) => [...t, { id, kind, message }])
+    const ttl = kind === 'error' ? 6000 : 3000
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), ttl)
+  }, [])
+  const dismissToast = useCallback(
+    (id: number) => setToasts((t) => t.filter((x) => x.id !== id)),
+    [],
+  )
 
   const refreshScripts = useCallback(() => {
-    api.listScripts().then(setScripts).catch((e) => setError(String(e)))
+    api
+      .listScripts()
+      .then((s) => {
+        setScripts(s)
+        setOnline(true)
+      })
+      .catch(() => setOnline(false))
   }, [])
 
   const refreshRuns = useCallback(() => {
-    api.listRuns().then(setRuns).catch(() => {})
+    api
+      .listRuns()
+      .then((r) => {
+        setRuns(r)
+        setOnline(true)
+      })
+      .catch(() => setOnline(false))
   }, [])
 
   useEffect(() => {
@@ -52,9 +78,9 @@ export default function App() {
         : await api.createScript(name, source)
       refreshScripts()
       setSelected(saved)
-      setError(null)
+      pushToast('success', id ? '저장됨' : '생성됨')
     } catch (e) {
-      setError(String(e))
+      pushToast('error', String(e))
     }
   }
 
@@ -64,8 +90,9 @@ export default function App() {
       setSelected(null)
       setEditorDirty(false)
       refreshScripts()
+      pushToast('success', '삭제됨')
     } catch (e) {
-      setError(String(e))
+      pushToast('error', String(e))
     }
   }
 
@@ -74,9 +101,9 @@ export default function App() {
       const run = await api.startRun({ scriptId, ...config })
       setSelectedRunId(run.runId)
       refreshRuns()
-      setError(null)
+      pushToast('success', '실행 시작')
     } catch (e) {
-      setError(String(e))
+      pushToast('error', String(e))
     }
   }
 
@@ -89,9 +116,9 @@ export default function App() {
       const run = await api.startRun({ scriptId: saved.id, ...config })
       setSelectedRunId(run.runId)
       refreshRuns()
-      setError(null)
+      pushToast('success', '저장 후 실행')
     } catch (e) {
-      setError(String(e))
+      pushToast('error', String(e))
     }
   }
 
@@ -99,17 +126,17 @@ export default function App() {
     try {
       await api.stopRun(runId)
       refreshRuns()
-    } catch {
-      // 무시
+    } catch (e) {
+      pushToast('error', String(e))
     }
   }
 
   const onUpdatePeriod = async (runId: string, tickPeriodMs: number) => {
     try {
       await api.updatePeriod(runId, tickPeriodMs)
-      setError(null)
+      pushToast('success', `주기 ${tickPeriodMs}ms로 변경됨`)
     } catch (e) {
-      setError(String(e))
+      pushToast('error', String(e))
     }
   }
 
@@ -173,9 +200,9 @@ export default function App() {
             이력
           </button>
         </nav>
-        {error && (
-          <span className="err" title={error}>
-            ⚠ {error}
+        {!online && (
+          <span className="conn-status" role="status">
+            ● 백엔드 연결 끊김 — 재연결 시도 중…
           </span>
         )}
       </header>
@@ -228,6 +255,7 @@ export default function App() {
         </div>
       )}
       <ConfirmDialog spec={confirm} onClose={() => setConfirm(null)} />
+      <ToastHost toasts={toasts} onDismiss={dismissToast} />
     </div>
   )
 }

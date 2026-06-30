@@ -21,10 +21,12 @@ export function LogsPanel({ runId }: { runId: string | null }) {
   const [level, setLevel] = useState<LevelFilter>('ALL')
   const [query, setQuery] = useState('')
   const [follow, setFollow] = useState(true)
+  const [reconnecting, setReconnecting] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setLogs([])
+    setReconnecting(false)
     if (!runId) {
       return
     }
@@ -37,8 +39,11 @@ export function LogsPanel({ runId }: { runId: string | null }) {
         }
       })
       .catch(() => {})
-    const unsub = subscribe<LogEntry>(runId, 'logs', (entry) =>
-      setLogs((prev) => [...prev.slice(-499), entry]),
+    const unsub = subscribe<LogEntry>(
+      runId,
+      'logs',
+      (entry) => setLogs((prev) => [...prev.slice(-499), entry]),
+      (state) => setReconnecting(state === 'reconnecting'),
     )
     return () => {
       active = false
@@ -63,6 +68,7 @@ export function LogsPanel({ runId }: { runId: string | null }) {
     <div className="logs-panel">
       <div className="panel-header logs-header">
         <h3>로그</h3>
+        {reconnecting && <span className="reconnect-hint small">● 재연결 중…</span>}
         <span className="muted small">
           {visible.length}
           {visible.length !== logs.length ? `/${logs.length}` : ''}
