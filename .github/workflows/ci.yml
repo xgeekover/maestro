@@ -46,6 +46,9 @@ jobs:
       - name: Typecheck
         working-directory: desktop
         run: pnpm typecheck
+      - name: Test (Vitest)
+        working-directory: desktop
+        run: pnpm test
       - name: Build
         working-directory: desktop
         run: pnpm build

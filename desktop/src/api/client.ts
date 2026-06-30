@@ -7,6 +7,7 @@ import type {
   MetricSnapshot,
   ModuleDto,
   RunDto,
+  RunHistoryDto,
   RunSummary,
   ScriptDto,
 } from '../types'
@@ -46,8 +47,12 @@ export const api = {
   startRun: (req: CreateRunRequest) =>
     http<RunDto>('/api/runs', { method: 'POST', body: JSON.stringify(req) }),
   stopRun: (id: string) => http<void>(`/api/runs/${id}/stop`, { method: 'POST' }),
+  updatePeriod: (id: string, tickPeriodMs: number) =>
+    http<void>(`/api/runs/${id}/period`, { method: 'POST', body: JSON.stringify({ tickPeriodMs }) }),
   metrics: (id: string) => http<MetricSnapshot[]>(`/api/runs/${id}/metrics`),
   logs: (id: string) => http<LogEntry[]>(`/api/runs/${id}/logs`),
+  runHistory: (page = 0, size = 50) =>
+    http<RunHistoryDto[]>(`/api/runs/history?page=${page}&size=${size}`),
 
   listFlows: () => http<FlowDto[]>('/api/flows'),
   getFlow: (id: string) => http<FlowDto>(`/api/flows/${id}`),

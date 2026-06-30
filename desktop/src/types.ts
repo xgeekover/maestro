@@ -93,3 +93,17 @@ export interface RunSummary {
   run: RunDto
   latest: MetricSnapshot | null
 }
+
+export interface RunHistoryDto {
+  runId: string
+  scriptId: string
+  scriptName: string
+  status: string
+  pid: number
+  restartCount: number
+  startedAt: string | null
+  endedAt: string | null
+  lastError: string | null
+  flowId: string | null
+  nodeId: string | null
+}
