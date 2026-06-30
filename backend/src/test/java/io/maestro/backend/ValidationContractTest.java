@@ -72,6 +72,16 @@ class ValidationContractTest {
     }
 
     @Test
+    void updatePeriodNonexistentRunIsNotFound() {
+        assertEquals(404, status("/api/runs/ghost-run/period", Map.of("tickPeriodMs", 100)));
+    }
+
+    @Test
+    void updatePeriodNegativeRejected() {
+        assertEquals(400, status("/api/runs/whatever/period", Map.of("tickPeriodMs", -5)));
+    }
+
+    @Test
     void deployNonexistentFlowIsNotFound() {
         assertEquals(404, status("/api/flows/ghost-flow/deploy", null));
     }

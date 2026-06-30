@@ -9,6 +9,7 @@ import io.maestro.backend.process.RunInfo;
 import io.maestro.backend.telemetry.MetricSnapshot;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
@@ -36,6 +37,10 @@ public final class Dtos {
                     e.getCreatedAt(), e.getUpdatedAt());
         }
     }
+
+    public record UpdatePeriodRequest(
+            @NotNull(message = "tickPeriodMs는 필수입니다")
+            @Positive(message = "tickPeriodMs는 양수여야 합니다") Long tickPeriodMs) {}
 
     // 0/null = "기본값 사용"(센티넬), 음수 = 거부 → @PositiveOrZero
     public record CreateRunRequest(

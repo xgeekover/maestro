@@ -65,8 +65,14 @@ public final class RunnerClient {
                                         msg.getDeliver().getPayloadJson().toStringUtf8());
                             }
                         }
-                        case UPDATE_PERIOD, HEARTBEAT, STATE_RESULT, PAYLOAD_NOT_SET -> {
-                            // Phase 4 미사용/무시
+                        case UPDATE_PERIOD -> {
+                            LifecycleEngine e = engineRef.get();
+                            if (e != null) {
+                                e.setTickPeriodMs(msg.getUpdatePeriod().getTickPeriodMs());
+                            }
+                        }
+                        case HEARTBEAT, STATE_RESULT, PAYLOAD_NOT_SET -> {
+                            // 미사용/무시
                         }
                     }
                 }

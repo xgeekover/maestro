@@ -37,6 +37,7 @@ public final class LifecycleEngine {
     private volatile LifecycleState state = LifecycleState.NEW;
     private volatile boolean stopRequested = false;
     private volatile Thread controlThread;
+    private volatile long currentPeriodNanos; // 실행 중 변경 가능(동적 주기)
     private ExecutorService scriptExecutor;
 
     public LifecycleEngine(String source, EngineConfig config, ScriptContext context, LifecycleListener listener) {
@@ -54,6 +55,13 @@ public final class LifecycleEngine {
 
     public LifecycleState state() {
         return state;
+    }
+
+    /** 실행 중 tick 주기를 변경한다(다음 tick부터 적용). RUNNING이 아닐 때 호출은 무시. */
+    public void setTickPeriodMs(long ms) {
+        if (ms > 0) {
+            this.currentPeriodNanos = ms * 1_000_000L;
+        }
     }
 
     /** 외부에서 graceful 중지 요청(사용자 중지). onEnd가 1회 호출되고 STOPPED로 종료된다. */
@@ -135,7 +143,7 @@ public final class LifecycleEngine {
             // --- RUNNING (onStart 성공 시에만 tick 스케줄) ---
             if (!errored) {
                 transition(LifecycleState.RUNNING, "tick 스케줄 개시");
-                long periodNanos = Math.max(0, config.tickPeriodMs()) * 1_000_000L;
+                currentPeriodNanos = Math.max(1, config.tickPeriodMs()) * 1_000_000L;
                 long next = System.nanoTime();
 
                 while (!stopRequested && (config.maxTicks() < 0 || tickCount < config.maxTicks())) {
@@ -145,7 +153,7 @@ public final class LifecycleEngine {
                     if (stopRequested) {
                         break;
                     }
-                    next += periodNanos;
+                    next += currentPeriodNanos; // 동적 주기: 매 tick 현재값 반영
 
                     long n = ++tickCount;
                     long t0 = System.nanoTime();

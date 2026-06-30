@@ -80,6 +80,12 @@ public class RunController {
         return run == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(Dtos.RunResponse.of(run));
     }
 
+    @PostMapping("/{runId}/period")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updatePeriod(@PathVariable String runId, @Valid @RequestBody Dtos.UpdatePeriodRequest req) {
+        supervisor.updatePeriod(runId, req.tickPeriodMs());
+    }
+
     @PostMapping("/{runId}/stop")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void stop(@PathVariable String runId) {

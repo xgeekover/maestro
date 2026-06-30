@@ -36,7 +36,9 @@
 | POST | `/api/runs` `{scriptId, tickPeriodMs, params, stopOnError, maxHeapBytes, tickTimeoutMs, errorThreshold}` | 실행 |
 | GET | `/api/runs[/{id}]` | 실행 목록·상태 |
 | POST | `/api/runs/{id}/stop` | 중지 |
+| POST | `/api/runs/{id}/period` `{tickPeriodMs}` | **실행 중 tick 주기 변경** |
 | GET | `/api/runs/{id}/metrics`·`/logs` | 메트릭·로그 |
+| GET | `/api/runs/history?page=&size=` · `/history/{id}` | **완료된 실행 이력**(영속, 재시작 후에도 조회) |
 | POST/GET/DELETE | `/api/flows[/{id}]` · `/deploy` · `/stop` | 플로우 |
 | POST/GET | `/api/modules` | 모듈 |
 | GET | `/api/dashboard` | 전체 개요(상태+최신 메트릭) |

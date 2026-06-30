@@ -9,6 +9,7 @@ import io.maestro.protocol.v1.ResourceLimits;
 import io.maestro.protocol.v1.StartCommand;
 import io.maestro.protocol.v1.StopCommand;
 import io.maestro.protocol.v1.TickExceptionPolicy;
+import io.maestro.protocol.v1.UpdatePeriodCommand;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -175,6 +176,27 @@ public class Supervisor {
             // 스트림 끊김 — 아래 강제 종료로 처리
         }
         scheduler.schedule(() -> forceKill(run), props.getRunner().getStopGraceMs(), TimeUnit.MILLISECONDS);
+    }
+
+    /** 실행 중 tick 주기 변경(UpdatePeriodCommand). 미연결이면 best-effort 무시. */
+    public void updatePeriod(String runId, long tickPeriodMs) {
+        RunInfo run = registry.byRunId(runId);
+        if (run == null) {
+            throw new io.maestro.backend.support.NotFoundException("실행 없음: " + runId);
+        }
+        if (run.status().isTerminal()) {
+            throw new IllegalArgumentException("종료된 실행은 주기를 변경할 수 없습니다");
+        }
+        long clamped = Math.max(props.getLimits().getMinTickPeriodMs(), tickPeriodMs);
+        try {
+            run.sendCommand(BackendMessage.newBuilder()
+                    .setUpdatePeriod(UpdatePeriodCommand.newBuilder()
+                            .setCommandId(UUID.randomUUID().toString())
+                            .setTickPeriodMs(clamped))
+                    .build());
+        } catch (RuntimeException e) {
+            log.warn("주기 변경 송신 실패 runId={}: {}", runId, e.toString());
+        }
     }
 
     private void forceKill(RunInfo run) {
