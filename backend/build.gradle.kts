@@ -12,6 +12,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // 영속화: H2 시작 + Postgres 전환경로 (ADR-0002 O-1). Flyway 마이그레이션.
     runtimeOnly("com.h2database:h2")

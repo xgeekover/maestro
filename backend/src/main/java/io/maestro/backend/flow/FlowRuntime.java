@@ -56,7 +56,7 @@ public class FlowRuntime {
 
     public FlowDeployment deploy(String flowId) {
         FlowEntity entity = flowService.get(flowId)
-                .orElseThrow(() -> new IllegalArgumentException("플로우 없음: " + flowId));
+                .orElseThrow(() -> new io.maestro.backend.support.NotFoundException("플로우 없음: " + flowId));
         FlowGraph graph = flowService.graphOf(entity);
         FlowValidator.validateDag(graph);
 
@@ -118,11 +118,11 @@ public class FlowRuntime {
     private Resolved resolve(FlowNode node) {
         if (node.kind() == NodeKind.MODULE) {
             ModuleEntity m = moduleService.get(node.refId())
-                    .orElseThrow(() -> new IllegalArgumentException("모듈 없음: " + node.refId()));
+                    .orElseThrow(() -> new io.maestro.backend.support.NotFoundException("모듈 없음: " + node.refId()));
             return new Resolved(m.getName() + "@" + m.getVersion(), m.getSource());
         }
         ScriptEntity s = scriptService.get(node.refId())
-                .orElseThrow(() -> new IllegalArgumentException("스크립트 없음: " + node.refId()));
+                .orElseThrow(() -> new io.maestro.backend.support.NotFoundException("스크립트 없음: " + node.refId()));
         return new Resolved(s.getName(), s.getSource());
     }
 }

@@ -6,6 +6,10 @@ import io.maestro.backend.flow.FlowModel.FlowGraph;
 import io.maestro.backend.module.ModuleEntity;
 import io.maestro.backend.process.RunInfo;
 import io.maestro.backend.telemetry.MetricSnapshot;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 import java.util.Map;
@@ -16,7 +20,13 @@ public final class Dtos {
     private Dtos() {
     }
 
-    public record CreateScriptRequest(String name, String source) {}
+    /** 스크립트 소스 최대 크기(QA H-2: 초대용량 소스 방지). 256KB. */
+    public static final int MAX_SOURCE_BYTES = 256 * 1024;
+
+    public record CreateScriptRequest(
+            @NotBlank(message = "name은 비어 있을 수 없습니다") String name,
+            @NotBlank(message = "source는 비어 있을 수 없습니다")
+            @Size(max = MAX_SOURCE_BYTES, message = "source가 최대 크기(256KB)를 초과했습니다") String source) {}
 
     public record ScriptResponse(String id, String name, String source, String sourceHash,
                                  Instant createdAt, Instant updatedAt) {
@@ -26,14 +36,15 @@ public final class Dtos {
         }
     }
 
+    // 0/null = "기본값 사용"(센티넬), 음수 = 거부 → @PositiveOrZero
     public record CreateRunRequest(
-            String scriptId,
-            Long tickPeriodMs,
+            @NotBlank(message = "scriptId는 필수입니다") String scriptId,
+            @PositiveOrZero(message = "tickPeriodMs는 음수일 수 없습니다") Long tickPeriodMs,
             Map<String, String> params,
             Boolean stopOnError,
-            Long maxHeapBytes,
-            Long tickTimeoutMs,
-            Long errorThreshold) {}
+            @PositiveOrZero(message = "maxHeapBytes는 음수일 수 없습니다") Long maxHeapBytes,
+            @PositiveOrZero(message = "tickTimeoutMs는 음수일 수 없습니다") Long tickTimeoutMs,
+            @PositiveOrZero(message = "errorThreshold는 음수일 수 없습니다") Long errorThreshold) {}
 
     public record RunResponse(String runId, String scriptId, String scriptName, String status,
                               long pid, int restartCount, Instant startedAt, String lastError) {
@@ -44,7 +55,9 @@ public final class Dtos {
     }
 
     // ---- 플로우 ----
-    public record CreateFlowRequest(String name, FlowGraph graph) {}
+    public record CreateFlowRequest(
+            @NotBlank(message = "name은 필수입니다") String name,
+            @NotNull(message = "graph는 필수입니다") FlowGraph graph) {}
 
     public record FlowResponse(String id, String name, FlowGraph graph, Instant createdAt, Instant updatedAt) {
         public static FlowResponse of(FlowEntity e, FlowGraph graph) {
@@ -58,7 +71,12 @@ public final class Dtos {
     public record RunSummary(RunResponse run, MetricSnapshot latest) {}
 
     // ---- 모듈 ----
-    public record CreateModuleRequest(String name, String version, String specJson, String source) {}
+    public record CreateModuleRequest(
+            @NotBlank(message = "name은 필수입니다") String name,
+            @NotBlank(message = "version은 필수입니다") String version,
+            String specJson,
+            @NotBlank(message = "source는 필수입니다")
+            @Size(max = MAX_SOURCE_BYTES, message = "source가 최대 크기(256KB)를 초과했습니다") String source) {}
 
     public record ModuleResponse(String id, String name, String version, String specJson, Instant createdAt) {
         public static ModuleResponse of(ModuleEntity m) {

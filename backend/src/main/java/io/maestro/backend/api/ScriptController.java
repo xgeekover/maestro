@@ -1,6 +1,7 @@
 package io.maestro.backend.api;
 
 import io.maestro.backend.domain.ScriptService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,7 +28,7 @@ public class ScriptController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Dtos.ScriptResponse create(@RequestBody Dtos.CreateScriptRequest req) {
+    public Dtos.ScriptResponse create(@Valid @RequestBody Dtos.CreateScriptRequest req) {
         return Dtos.ScriptResponse.of(scripts.create(req.name(), req.source()));
     }
 
@@ -46,7 +47,7 @@ public class ScriptController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Dtos.ScriptResponse> update(@PathVariable String id,
-                                                      @RequestBody Dtos.CreateScriptRequest req) {
+                                                      @Valid @RequestBody Dtos.CreateScriptRequest req) {
         return scripts.update(id, req.name(), req.source())
                 .map(Dtos.ScriptResponse::of)
                 .map(ResponseEntity::ok)

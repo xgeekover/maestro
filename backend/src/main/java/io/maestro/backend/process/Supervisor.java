@@ -82,7 +82,7 @@ public class Supervisor {
     /** 영속 스크립트로 실행 시작. */
     public RunInfo startRun(String scriptId, RunConfig config) {
         ScriptEntity script = scripts.findById(scriptId)
-                .orElseThrow(() -> new IllegalArgumentException("스크립트 없음: " + scriptId));
+                .orElseThrow(() -> new io.maestro.backend.support.NotFoundException("스크립트 없음: " + scriptId));
         return launch(scriptId, script.getName(), script.getSource(), config, null, null);
     }
 

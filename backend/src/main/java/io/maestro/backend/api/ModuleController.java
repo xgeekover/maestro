@@ -1,6 +1,7 @@
 package io.maestro.backend.api;
 
 import io.maestro.backend.module.ModuleService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,7 @@ public class ModuleController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Dtos.ModuleResponse create(@RequestBody Dtos.CreateModuleRequest req) {
+    public Dtos.ModuleResponse create(@Valid @RequestBody Dtos.CreateModuleRequest req) {
         return Dtos.ModuleResponse.of(
                 modules.create(req.name(), req.version(), req.specJson(), req.source()));
     }

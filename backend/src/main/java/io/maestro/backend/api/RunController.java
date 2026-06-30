@@ -8,6 +8,7 @@ import io.maestro.backend.process.Supervisor;
 import io.maestro.backend.telemetry.LogEntry;
 import io.maestro.backend.telemetry.MetricSnapshot;
 import io.maestro.backend.telemetry.TelemetryStore;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +41,7 @@ public class RunController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public Dtos.RunResponse run(@RequestBody Dtos.CreateRunRequest req) {
+    public Dtos.RunResponse run(@Valid @RequestBody Dtos.CreateRunRequest req) {
         // 기본 한도(행 워치독/heap 캡) 강제 + 상한 클램프 (QA C-2)
         RunConfig config = configFactory.forRun(
                 req.tickPeriodMs(), req.params(), req.stopOnError(),
@@ -63,6 +64,9 @@ public class RunController {
     @PostMapping("/{runId}/stop")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void stop(@PathVariable String runId) {
+        if (registry.byRunId(runId) == null) {
+            throw new io.maestro.backend.support.NotFoundException("실행 없음: " + runId);
+        }
         supervisor.stopRun(runId);
     }
 

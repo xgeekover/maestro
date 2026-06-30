@@ -5,6 +5,7 @@ import io.maestro.backend.flow.FlowEntity;
 import io.maestro.backend.flow.FlowRuntime;
 import io.maestro.backend.flow.FlowService;
 import io.maestro.backend.process.RunInfo;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,7 +35,7 @@ public class FlowController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Dtos.FlowResponse create(@RequestBody Dtos.CreateFlowRequest req) {
+    public Dtos.FlowResponse create(@Valid @RequestBody Dtos.CreateFlowRequest req) {
         FlowEntity entity = flows.create(req.name(), req.graph()); // DAG 위반 시 422(GlobalExceptionHandler)
         return Dtos.FlowResponse.of(entity, flows.graphOf(entity));
     }
