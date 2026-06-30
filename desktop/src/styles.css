@@ -101,6 +101,48 @@ body {
 .canvas-host {
   flex: 1;
   min-height: 0;
+  position: relative;
+}
+.flow-config-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 240px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 8px 24px #0008;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fcp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.flow-config-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.flow-config-panel input,
+.flow-config-panel textarea {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: inherit;
+}
+.flow-config-panel textarea {
+  resize: vertical;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
 }
 .react-flow {
   background: var(--bg);

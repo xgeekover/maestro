@@ -241,7 +241,7 @@ export default function App() {
       )}
       {view === 'flows' && (
         <div className="app-body-flow">
-          <FlowCanvas scripts={scripts} />
+          <FlowCanvas scripts={scripts} runs={runs} />
         </div>
       )}
       {view === 'dashboard' && (
