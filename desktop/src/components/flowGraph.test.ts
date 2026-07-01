@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { buildGraph, mapNodeStatuses, paramsToText, refLabel, type CanvasNode } from './flowGraph'
+import {
+  buildGraph,
+  mapNodeStatuses,
+  nodePorts,
+  paramsToText,
+  parseSpecPorts,
+  refLabel,
+  type CanvasNode,
+} from './flowGraph'
 import type { RunDto } from '../types'
 
 function node(id: string, over: Partial<CanvasNode['data']> = {}): CanvasNode {
@@ -82,5 +90,39 @@ describe('refLabel', () => {
   it('falls back to the refId when not found', () => {
     expect(refLabel('SCRIPT', 'gone', scripts, modules)).toBe('gone')
     expect(refLabel('MODULE', 'gone', scripts, modules)).toBe('gone')
+  })
+})
+
+describe('parseSpecPorts', () => {
+  it('parses declared in/out ports', () => {
+    expect(parseSpecPorts('{"in":["a"],"out":["x","y"]}')).toEqual({ in: ['a'], out: ['x', 'y'] })
+  })
+
+  it('defaults to single in/out for empty, missing keys, or invalid JSON', () => {
+    const def = { in: ['in'], out: ['out'] }
+    expect(parseSpecPorts('')).toEqual(def)
+    expect(parseSpecPorts('{}')).toEqual(def)
+    expect(parseSpecPorts('{bad')).toEqual(def)
+    expect(parseSpecPorts('{"in":[]}')).toEqual(def)
+  })
+
+  it('ignores non-string port entries', () => {
+    expect(parseSpecPorts('{"out":["ok",5,null]}')).toEqual({ in: ['in'], out: ['ok'] })
+  })
+})
+
+describe('nodePorts', () => {
+  const modules = [{ id: 'm1', specJson: '{"in":["a"],"out":["x","y"]}' }]
+
+  it('resolves module ports from specJson', () => {
+    expect(nodePorts('MODULE', 'm1', modules)).toEqual({ in: ['a'], out: ['x', 'y'] })
+  })
+
+  it('uses default single ports for scripts', () => {
+    expect(nodePorts('SCRIPT', 's1', modules)).toEqual({ in: ['in'], out: ['out'] })
+  })
+
+  it('uses default ports for an unknown module', () => {
+    expect(nodePorts('MODULE', 'gone', modules)).toEqual({ in: ['in'], out: ['out'] })
   })
 })

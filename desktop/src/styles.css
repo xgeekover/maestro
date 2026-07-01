@@ -103,6 +103,51 @@ body {
   min-height: 0;
   position: relative;
 }
+
+/* 커스텀 플로우 노드(타입 핸들) */
+.flow-node {
+  min-width: 120px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 12px;
+}
+.flow-node.selected {
+  border-color: var(--accent);
+}
+.flow-node .fn-title {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.flow-node .fn-status {
+  font-size: 10px;
+  margin-top: 2px;
+}
+.flow-node .react-flow__handle {
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  border: 1px solid var(--bg);
+}
+.flow-node .port-label {
+  position: absolute;
+  top: -6px;
+  font-size: 9px;
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.flow-node .port-in {
+  left: 12px;
+}
+.flow-node .port-out {
+  right: 12px;
+}
+.fcp-ports {
+  padding: 2px 0;
+}
 .flow-config-panel {
   position: absolute;
   top: 12px;

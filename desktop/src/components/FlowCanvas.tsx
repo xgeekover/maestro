@@ -12,27 +12,13 @@ import 'reactflow/dist/style.css'
 import { api } from '../api/client'
 import type { FlowDto, ModuleDto, NodeKind, RunDto, ScriptDto } from '../types'
 import { ConfirmDialog, type ConfirmSpec } from './ConfirmDialog'
-import { buildGraph, mapNodeStatuses, paramsToText, refLabel } from './flowGraph'
+import { FlowNodeCard, type FlowNodeCardData } from './FlowNodeCard'
+import { buildGraph, mapNodeStatuses, nodePorts, paramsToText, refLabel } from './flowGraph'
 import { parseParams } from './RunLauncher'
 
-interface NodeData {
-  label: string
-  name: string
-  kind: NodeKind
-  refId: string
-  tickPeriodMs: number
-  params: Record<string, string>
-}
+type NodeData = FlowNodeCardData
 
-const STATUS_COLOR: Record<string, string> = {
-  PENDING: '#8b949e',
-  COMPILING: '#d29922',
-  STARTING: '#d29922',
-  RUNNING: '#3fb950',
-  STOPPING: '#d29922',
-  STOPPED: '#8b949e',
-  ERROR: '#f85149',
-}
+const NODE_TYPES = { maestro: FlowNodeCard }
 
 let nodeSeq = 1
 
@@ -67,8 +53,12 @@ export function FlowCanvas({
     refreshFlows()
   }, [refreshFlows])
 
+  // 엣지 라벨을 연결된 포트로 표기(fromPort→toPort).
   const onConnect = useCallback(
-    (c: Connection) => setEdges((eds) => addEdge({ ...c, label: 'out→in' }, eds)),
+    (c: Connection) =>
+      setEdges((eds) =>
+        addEdge({ ...c, label: `${c.sourceHandle ?? 'out'}→${c.targetHandle ?? 'in'}` }, eds),
+      ),
     [setEdges],
   )
 
@@ -84,8 +74,9 @@ export function FlowCanvas({
     const id = `n${nodeSeq++}`
     const node: Node<NodeData> = {
       id,
+      type: 'maestro',
       position: { x: 80 + Math.random() * 240, y: 80 + Math.random() * 200 },
-      data: { label, name: label, kind, refId, tickPeriodMs: 1000, params: {} },
+      data: { name: label, kind, refId, tickPeriodMs: 1000, params: {}, ports: nodePorts(kind, refId, modules) },
     }
     setNodes((ns) => [...ns, node])
   }
@@ -93,19 +84,9 @@ export function FlowCanvas({
   // 노드별 상태(배포 결과 + 현재 실행 목록)
   const statuses = useMemo(() => mapNodeStatuses(deployedRuns, runs), [deployedRuns, runs])
 
-  // 렌더용 노드: 상태 색·라벨을 입힌 파생 배열(기준 nodes는 그대로 관리).
+  // 렌더용 노드: 상태를 data에 주입(색·라벨은 커스텀 노드가 렌더).
   const displayNodes = useMemo(
-    () =>
-      nodes.map((n) => {
-        const st = statuses[n.id]
-        return {
-          ...n,
-          data: { ...n.data, label: st ? `${n.data.name} · ${st}` : n.data.name },
-          style: st
-            ? { borderColor: STATUS_COLOR[st] ?? '#8b949e', boxShadow: `0 0 0 1px ${STATUS_COLOR[st] ?? '#8b949e'}` }
-            : undefined,
-        }
-      }),
+    () => nodes.map((n) => ({ ...n, data: { ...n.data, status: statuses[n.id] } })),
     [nodes, statuses],
   )
 
@@ -195,21 +176,19 @@ export function FlowCanvas({
       setDeployedRuns({})
       setSelectedNodeId(null)
       setNodes(
-        flow.graph.nodes.map((n, i) => {
-          const nm = refLabel(n.kind, n.refId, scripts, modules)
-          return {
-            id: n.id,
-            position: { x: 80 + i * 180, y: 120 },
-            data: {
-              label: nm,
-              name: nm,
-              kind: n.kind,
-              refId: n.refId,
-              tickPeriodMs: n.tickPeriodMs ?? 1000,
-              params: n.params ?? {},
-            },
-          }
-        }),
+        flow.graph.nodes.map((n, i) => ({
+          id: n.id,
+          type: 'maestro',
+          position: { x: 80 + i * 180, y: 120 },
+          data: {
+            name: refLabel(n.kind, n.refId, scripts, modules),
+            kind: n.kind,
+            refId: n.refId,
+            tickPeriodMs: n.tickPeriodMs ?? 1000,
+            params: n.params ?? {},
+            ports: nodePorts(n.kind, n.refId, modules),
+          },
+        })),
       )
       setEdges(
         flow.graph.edges.map((e, i) => ({
@@ -294,6 +273,7 @@ export function FlowCanvas({
         <ReactFlow
           nodes={displayNodes}
           edges={edges}
+          nodeTypes={NODE_TYPES}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -312,6 +292,10 @@ export function FlowCanvas({
               <button className="mini" aria-label="닫기" onClick={() => setSelectedNodeId(null)}>
                 ✕
               </button>
+            </div>
+            <div className="fcp-ports muted small">
+              in: {selectedNode.data.ports.in.join(', ')} · out:{' '}
+              {selectedNode.data.ports.out.join(', ')}
             </div>
             <label>
               주기(ms)

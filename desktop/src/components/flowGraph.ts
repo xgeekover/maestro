@@ -60,6 +60,40 @@ export function paramsToText(params: Record<string, string>): string {
     .join('\n')
 }
 
+export interface Ports {
+  in: string[]
+  out: string[]
+}
+
+const DEFAULT_PORTS: Ports = { in: ['in'], out: ['out'] }
+
+// specJson({"in":[...],"out":[...]}) → 포트 목록. 비거나 잘못되면 기본 단일 in/out.
+export function parseSpecPorts(specJson: string): Ports {
+  try {
+    const o = JSON.parse(specJson || '{}') as { in?: unknown; out?: unknown }
+    const strs = (v: unknown): string[] =>
+      Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []
+    const inp = strs(o.in)
+    const out = strs(o.out)
+    return { in: inp.length ? inp : ['in'], out: out.length ? out : ['out'] }
+  } catch {
+    return { in: ['in'], out: ['out'] }
+  }
+}
+
+// 노드의 선언 포트: 모듈은 specJson, 스크립트는 기본 단일 in/out.
+export function nodePorts(
+  kind: NodeKind,
+  refId: string,
+  modules: { id: string; specJson: string }[],
+): Ports {
+  if (kind === 'MODULE') {
+    const m = modules.find((x) => x.id === refId)
+    return m ? parseSpecPorts(m.specJson) : DEFAULT_PORTS
+  }
+  return DEFAULT_PORTS
+}
+
 // 노드가 참조하는 스크립트/모듈의 표시 이름(모듈은 name@version). 못 찾으면 refId.
 export function refLabel(
   kind: NodeKind,
