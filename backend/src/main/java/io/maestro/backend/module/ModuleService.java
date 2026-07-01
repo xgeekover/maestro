@@ -30,4 +30,19 @@ public class ModuleService {
     public Optional<ModuleEntity> get(String id) {
         return repository.findById(id);
     }
+
+    public Optional<ModuleEntity> update(String id, String name, String version, String specJson, String source) {
+        return repository.findById(id).map(m -> {
+            m.update(name, version, specJson == null ? "{}" : specJson, source);
+            return repository.save(m);
+        });
+    }
+
+    public boolean delete(String id) {
+        if (!repository.existsById(id)) {
+            return false;
+        }
+        repository.deleteById(id);
+        return true;
+    }
 }

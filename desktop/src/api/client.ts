@@ -69,6 +69,12 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ name, version, specJson, source }),
     }),
+  updateModule: (id: string, name: string, version: string, specJson: string, source: string) =>
+    http<ModuleDto>(`/api/modules/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name, version, specJson, source }),
+    }),
+  deleteModule: (id: string) => http<void>(`/api/modules/${id}`, { method: 'DELETE' }),
 
   dashboard: () => http<RunSummary[]>('/api/dashboard'),
 }

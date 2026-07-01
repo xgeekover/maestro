@@ -73,6 +73,28 @@ describe('api client', () => {
     expect(f.mock.calls[0][0]).toBe(`${BACKEND_BASE}/api/modules/m1`)
   })
 
+  it('updateModule PUTs to /api/modules/{id}', async () => {
+    const f = mockFetch(200, '{"id":"m1"}')
+    await api.updateModule('m1', 'mod', '1.1.0', '{}', 'class M {}')
+    const [url, init] = f.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe(`${BACKEND_BASE}/api/modules/m1`)
+    expect(init.method).toBe('PUT')
+    expect(JSON.parse(init.body as string)).toEqual({
+      name: 'mod',
+      version: '1.1.0',
+      specJson: '{}',
+      source: 'class M {}',
+    })
+  })
+
+  it('deleteModule uses DELETE', async () => {
+    const f = mockFetch(200, '')
+    await api.deleteModule('m1')
+    const [url, init] = f.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe(`${BACKEND_BASE}/api/modules/m1`)
+    expect((init as RequestInit).method).toBe('DELETE')
+  })
+
   it('throws on a non-ok response', async () => {
     mockFetch(404, 'not found')
     await expect(api.getScript('ghost')).rejects.toThrow(/404/)

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { ModuleView, moduleFormReady, specJsonError } from './ModuleView'
 import { api } from '../api/client'
 import type { ModuleDto } from '../types'
@@ -80,5 +80,35 @@ describe('ModuleView', () => {
     fireEvent.change(screen.getByLabelText('specJson'), { target: { value: '{bad' } })
     expect((screen.getByText('생성') as HTMLButtonElement).disabled).toBe(true)
     screen.getByText(/JSON/)
+  })
+
+  it('selecting a module switches to edit mode and saves in place', async () => {
+    vi.spyOn(api, 'listModules').mockResolvedValue([mod({ id: 'm1', name: 'Alpha', source: 'class A {}' })])
+    const update = vi.spyOn(api, 'updateModule').mockResolvedValue(mod({ id: 'm1', name: 'Alpha' }))
+    const onModulesChanged = vi.fn()
+    render(<ModuleView onModulesChanged={onModulesChanged} />)
+
+    fireEvent.click(await screen.findByText('Alpha'))
+    // 편집 모드: 생성 대신 저장/삭제
+    const save = screen.getByText('저장') as HTMLButtonElement
+    fireEvent.click(save)
+
+    await waitFor(() => expect(onModulesChanged).toHaveBeenCalled())
+    expect(update).toHaveBeenCalledWith('m1', 'Alpha', '1.0.0', '{}', 'class A {}')
+  })
+
+  it('deletes a selected module after confirmation', async () => {
+    vi.spyOn(api, 'listModules').mockResolvedValue([mod({ id: 'm1', name: 'Alpha' })])
+    const del = vi.spyOn(api, 'deleteModule').mockResolvedValue(undefined)
+    const onModulesChanged = vi.fn()
+    render(<ModuleView onModulesChanged={onModulesChanged} />)
+
+    fireEvent.click(await screen.findByText('Alpha'))
+    fireEvent.click(screen.getByText('삭제')) // 툴바 삭제 → 확인 모달
+    const dialog = screen.getByRole('dialog')
+    fireEvent.click(within(dialog).getByText('삭제')) // 확인
+
+    await waitFor(() => expect(del).toHaveBeenCalledWith('m1'))
+    expect(onModulesChanged).toHaveBeenCalled()
   })
 })

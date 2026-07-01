@@ -2,6 +2,7 @@ import Editor from '@monaco-editor/react'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { ModuleDto } from '../types'
+import { ConfirmDialog, type ConfirmSpec } from './ConfirmDialog'
 
 const DEFAULT_MODULE_SOURCE = `import io.maestro.sdk.Script;
 
@@ -51,6 +52,7 @@ export function ModuleView({ onModulesChanged }: { onModulesChanged?: () => void
   const [specJson, setSpecJson] = useState(DEFAULT_SPEC)
   const [source, setSource] = useState(DEFAULT_MODULE_SOURCE)
   const [msg, setMsg] = useState<string | null>(null)
+  const [confirm, setConfirm] = useState<ConfirmSpec | null>(null)
 
   const refresh = useCallback(() => {
     api.listModules().then(setModules).catch(() => {})
@@ -79,7 +81,7 @@ export function ModuleView({ onModulesChanged }: { onModulesChanged?: () => void
   }
 
   const specErr = specJsonError(specJson)
-  const canCreate = moduleFormReady(name, version, source) && !specErr
+  const canSubmit = moduleFormReady(name, version, source) && !specErr
 
   const create = async () => {
     try {
@@ -91,6 +93,43 @@ export function ModuleView({ onModulesChanged }: { onModulesChanged?: () => void
     } catch (e) {
       setMsg(`생성 실패: ${String(e)}`)
     }
+  }
+
+  const save = async () => {
+    if (!selectedId) {
+      return
+    }
+    try {
+      const saved = await api.updateModule(selectedId, name, version, specJson.trim() || '{}', source)
+      refresh()
+      onModulesChanged?.()
+      setMsg(`저장됨: ${saved.name}@${saved.version}`)
+    } catch (e) {
+      setMsg(`저장 실패: ${String(e)}`)
+    }
+  }
+
+  const requestDelete = () => {
+    if (!selectedId) {
+      return
+    }
+    const id = selectedId
+    setConfirm({
+      message: `'${name}@${version}' 모듈을 삭제합니다. 되돌릴 수 없습니다.`,
+      confirmLabel: '삭제',
+      danger: true,
+      action: async () => {
+        try {
+          await api.deleteModule(id)
+          newModule()
+          refresh()
+          onModulesChanged?.()
+          setMsg('삭제됨')
+        } catch (e) {
+          setMsg(`삭제 실패: ${String(e)}`)
+        }
+      },
+    })
   }
 
   return (
@@ -134,9 +173,20 @@ export function ModuleView({ onModulesChanged }: { onModulesChanged?: () => void
             value={version}
             onChange={(e) => setVersion(e.target.value)}
           />
-          <button className="primary" onClick={create} disabled={!canCreate} title="새 버전으로 생성">
-            생성
-          </button>
+          {selectedId ? (
+            <>
+              <button className="primary" onClick={save} disabled={!canSubmit} title="제자리 저장(수정)">
+                저장
+              </button>
+              <button className="danger" onClick={requestDelete}>
+                삭제
+              </button>
+            </>
+          ) : (
+            <button className="primary" onClick={create} disabled={!canSubmit} title="새 모듈 생성">
+              생성
+            </button>
+          )}
           {msg && <span className="muted small">{msg}</span>}
         </div>
         <div className="mod-spec">
@@ -150,7 +200,11 @@ export function ModuleView({ onModulesChanged }: { onModulesChanged?: () => void
             />
           </label>
           {specErr && <span className="mod-spec-err">⚠ {specErr}</span>}
-          <span className="muted small">모듈은 버전 단위로 생성됩니다(수정 = 새 버전 생성).</span>
+          <span className="muted small">
+            {selectedId
+              ? '선택한 모듈을 제자리 수정합니다. 새 모듈은 "+ 새로".'
+              : '새 모듈을 생성합니다. 기존 모듈은 왼쪽에서 선택해 수정/삭제.'}
+          </span>
         </div>
         <div className="editor-host">
           <Editor
@@ -168,6 +222,7 @@ export function ModuleView({ onModulesChanged }: { onModulesChanged?: () => void
           />
         </div>
       </main>
+      <ConfirmDialog spec={confirm} onClose={() => setConfirm(null)} />
     </div>
   )
 }

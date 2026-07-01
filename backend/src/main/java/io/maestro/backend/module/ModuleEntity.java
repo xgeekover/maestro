@@ -50,6 +50,14 @@ public class ModuleEntity {
         this.createdAt = createdAt;
     }
 
+    /** 가변 필드 수정(제자리 편집, T2). id·createdAt은 불변. */
+    public void update(String name, String version, String specJson, String source) {
+        this.name = name;
+        this.version = version;
+        this.specJson = specJson;
+        this.source = source;
+    }
+
     public String getId() { return id; }
     public String getName() { return name; }
     public String getVersion() { return version; }
