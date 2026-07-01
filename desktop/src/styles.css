@@ -144,6 +144,59 @@ body {
   resize: vertical;
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
 }
+
+/* 모듈 저작 */
+.module-view {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.module-view .sidebar {
+  width: 200px;
+  flex: none;
+}
+.module-editor {
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.mod-toolbar .ver-input {
+  width: 120px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.mod-spec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.mod-spec label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.mod-spec textarea {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  resize: vertical;
+}
+.mod-spec-err {
+  color: var(--red);
+  font-size: 11px;
+}
 .react-flow {
   background: var(--bg);
 }

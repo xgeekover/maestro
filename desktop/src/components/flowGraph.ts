@@ -59,3 +59,18 @@ export function paramsToText(params: Record<string, string>): string {
     .map(([k, v]) => `${k}=${v}`)
     .join('\n')
 }
+
+// 노드가 참조하는 스크립트/모듈의 표시 이름(모듈은 name@version). 못 찾으면 refId.
+export function refLabel(
+  kind: NodeKind,
+  refId: string,
+  scripts: { id: string; name: string }[],
+  modules: { id: string; name: string; version: string }[],
+): string {
+  if (kind === 'MODULE') {
+    const m = modules.find((x) => x.id === refId)
+    return m ? `${m.name}@${m.version}` : refId
+  }
+  const s = scripts.find((x) => x.id === refId)
+  return s ? s.name : refId
+}

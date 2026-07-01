@@ -95,9 +95,11 @@ public final class Dtos {
             @NotBlank(message = "source는 필수입니다")
             @Size(max = MAX_SOURCE_BYTES, message = "source가 최대 크기(256KB)를 초과했습니다") String source) {}
 
-    public record ModuleResponse(String id, String name, String version, String specJson, Instant createdAt) {
+    public record ModuleResponse(String id, String name, String version, String specJson, String source,
+                                 Instant createdAt) {
         public static ModuleResponse of(ModuleEntity m) {
-            return new ModuleResponse(m.getId(), m.getName(), m.getVersion(), m.getSpecJson(), m.getCreatedAt());
+            return new ModuleResponse(m.getId(), m.getName(), m.getVersion(), m.getSpecJson(),
+                    m.getSource(), m.getCreatedAt());
         }
     }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildGraph, mapNodeStatuses, paramsToText, type CanvasNode } from './flowGraph'
+import { buildGraph, mapNodeStatuses, paramsToText, refLabel, type CanvasNode } from './flowGraph'
 import type { RunDto } from '../types'
 
 function node(id: string, over: Partial<CanvasNode['data']> = {}): CanvasNode {
@@ -64,5 +64,23 @@ describe('paramsToText', () => {
   it('serializes params to key=value lines', () => {
     expect(paramsToText({ a: '1', b: '2' })).toBe('a=1\nb=2')
     expect(paramsToText({})).toBe('')
+  })
+})
+
+describe('refLabel', () => {
+  const scripts = [{ id: 's1', name: 'Ingest' }]
+  const modules = [{ id: 'm1', name: 'Filter', version: '2.0.0' }]
+
+  it('resolves a script node to its name', () => {
+    expect(refLabel('SCRIPT', 's1', scripts, modules)).toBe('Ingest')
+  })
+
+  it('resolves a module node to name@version', () => {
+    expect(refLabel('MODULE', 'm1', scripts, modules)).toBe('Filter@2.0.0')
+  })
+
+  it('falls back to the refId when not found', () => {
+    expect(refLabel('SCRIPT', 'gone', scripts, modules)).toBe('gone')
+    expect(refLabel('MODULE', 'gone', scripts, modules)).toBe('gone')
   })
 })

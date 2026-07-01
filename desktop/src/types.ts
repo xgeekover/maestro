@@ -86,6 +86,7 @@ export interface ModuleDto {
   name: string
   version: string
   specJson: string
+  source: string
   createdAt: string
 }
 

@@ -6,20 +6,22 @@ import { FlowCanvas } from './components/FlowCanvas'
 import { HistoryView } from './components/HistoryView'
 import { LogsPanel } from './components/LogsPanel'
 import { MetricsPanel } from './components/MetricsPanel'
+import { ModuleView } from './components/ModuleView'
 import { RunControlBar } from './components/RunControlBar'
 import { RunPanel } from './components/RunPanel'
 import type { RunConfig } from './components/RunLauncher'
 import { ScriptEditor } from './components/ScriptEditor'
 import { ScriptList } from './components/ScriptList'
 import { ToastHost, type Toast, type ToastKind } from './components/ToastHost'
-import type { RunDto, ScriptDto } from './types'
+import type { ModuleDto, RunDto, ScriptDto } from './types'
 
-type View = 'scripts' | 'flows' | 'dashboard' | 'history'
+type View = 'scripts' | 'flows' | 'modules' | 'dashboard' | 'history'
 
 const DISCARD_MSG = '저장하지 않은 변경이 있습니다. 버리고 이동할까요?'
 
 export default function App() {
   const [scripts, setScripts] = useState<ScriptDto[]>([])
+  const [modules, setModules] = useState<ModuleDto[]>([])
   const [selected, setSelected] = useState<ScriptDto | null>(null)
   const [runs, setRuns] = useState<RunDto[]>([])
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
@@ -61,9 +63,14 @@ export default function App() {
       .catch(() => setOnline(false))
   }, [])
 
+  const refreshModules = useCallback(() => {
+    api.listModules().then(setModules).catch(() => {})
+  }, [])
+
   useEffect(() => {
     refreshScripts()
-  }, [refreshScripts])
+    refreshModules()
+  }, [refreshScripts, refreshModules])
 
   useEffect(() => {
     refreshRuns()
@@ -193,6 +200,9 @@ export default function App() {
           <button className={tabClass('flows')} onClick={() => changeView('flows')}>
             플로우
           </button>
+          <button className={tabClass('modules')} onClick={() => changeView('modules')}>
+            모듈
+          </button>
           <button className={tabClass('dashboard')} onClick={() => changeView('dashboard')}>
             대시보드
           </button>
@@ -241,7 +251,12 @@ export default function App() {
       )}
       {view === 'flows' && (
         <div className="app-body-flow">
-          <FlowCanvas scripts={scripts} runs={runs} />
+          <FlowCanvas scripts={scripts} modules={modules} runs={runs} />
+        </div>
+      )}
+      {view === 'modules' && (
+        <div className="app-body-flow">
+          <ModuleView onModulesChanged={refreshModules} />
         </div>
       )}
       {view === 'dashboard' && (

@@ -63,6 +63,12 @@ export const api = {
   stopFlow: (id: string) => http<void>(`/api/flows/${id}/stop`, { method: 'POST' }),
 
   listModules: () => http<ModuleDto[]>('/api/modules'),
+  getModule: (id: string) => http<ModuleDto>(`/api/modules/${id}`),
+  createModule: (name: string, version: string, specJson: string, source: string) =>
+    http<ModuleDto>('/api/modules', {
+      method: 'POST',
+      body: JSON.stringify({ name, version, specJson, source }),
+    }),
 
   dashboard: () => http<RunSummary[]>('/api/dashboard'),
 }

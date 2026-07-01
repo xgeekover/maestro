@@ -53,6 +53,26 @@ describe('api client', () => {
     expect(f.mock.calls[0][0]).toBe(`${BACKEND_BASE}/api/runs/history?page=2&size=25`)
   })
 
+  it('createModule POSTs name/version/specJson/source', async () => {
+    const f = mockFetch(201, '{"id":"m1"}')
+    await api.createModule('mod', '1.2.0', '{"in":["in"]}', 'class M {}')
+    const [url, init] = f.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe(`${BACKEND_BASE}/api/modules`)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body as string)).toEqual({
+      name: 'mod',
+      version: '1.2.0',
+      specJson: '{"in":["in"]}',
+      source: 'class M {}',
+    })
+  })
+
+  it('getModule GETs /api/modules/{id}', async () => {
+    const f = mockFetch(200, '{"id":"m1"}')
+    await api.getModule('m1')
+    expect(f.mock.calls[0][0]).toBe(`${BACKEND_BASE}/api/modules/m1`)
+  })
+
   it('throws on a non-ok response', async () => {
     mockFetch(404, 'not found')
     await expect(api.getScript('ghost')).rejects.toThrow(/404/)

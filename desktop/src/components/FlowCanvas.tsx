@@ -10,9 +10,9 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { api } from '../api/client'
-import type { FlowDto, NodeKind, RunDto, ScriptDto } from '../types'
+import type { FlowDto, ModuleDto, NodeKind, RunDto, ScriptDto } from '../types'
 import { ConfirmDialog, type ConfirmSpec } from './ConfirmDialog'
-import { buildGraph, mapNodeStatuses, paramsToText } from './flowGraph'
+import { buildGraph, mapNodeStatuses, paramsToText, refLabel } from './flowGraph'
 import { parseParams } from './RunLauncher'
 
 interface NodeData {
@@ -36,13 +36,21 @@ const STATUS_COLOR: Record<string, string> = {
 
 let nodeSeq = 1
 
-export function FlowCanvas({ scripts, runs }: { scripts: ScriptDto[]; runs: RunDto[] }) {
+export function FlowCanvas({
+  scripts,
+  modules,
+  runs,
+}: {
+  scripts: ScriptDto[]
+  modules: ModuleDto[]
+  runs: RunDto[]
+}) {
   const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [flows, setFlows] = useState<FlowDto[]>([])
   const [name, setName] = useState('새 플로우')
   const [flowId, setFlowId] = useState<string | null>(null)
-  const [pickScript, setPickScript] = useState('')
+  const [pick, setPick] = useState('')
   const [status, setStatus] = useState('')
   const [deployedRuns, setDeployedRuns] = useState<Record<string, string>>({})
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
@@ -64,23 +72,20 @@ export function FlowCanvas({ scripts, runs }: { scripts: ScriptDto[]; runs: RunD
     [setEdges],
   )
 
+  // pick 값은 "script:<id>" 또는 "module:<id>" 로 인코딩.
   const addNode = () => {
-    const script = scripts.find((s) => s.id === pickScript)
-    if (!script) {
+    const sep = pick.indexOf(':')
+    if (sep < 0) {
       return
     }
+    const kind: NodeKind = pick.slice(0, sep) === 'module' ? 'MODULE' : 'SCRIPT'
+    const refId = pick.slice(sep + 1)
+    const label = refLabel(kind, refId, scripts, modules)
     const id = `n${nodeSeq++}`
     const node: Node<NodeData> = {
       id,
       position: { x: 80 + Math.random() * 240, y: 80 + Math.random() * 200 },
-      data: {
-        label: script.name,
-        name: script.name,
-        kind: 'SCRIPT',
-        refId: script.id,
-        tickPeriodMs: 1000,
-        params: {},
-      },
+      data: { label, name: label, kind, refId, tickPeriodMs: 1000, params: {} },
     }
     setNodes((ns) => [...ns, node])
   }
@@ -191,7 +196,7 @@ export function FlowCanvas({ scripts, runs }: { scripts: ScriptDto[]; runs: RunD
       setSelectedNodeId(null)
       setNodes(
         flow.graph.nodes.map((n, i) => {
-          const nm = scripts.find((s) => s.id === n.refId)?.name ?? n.refId
+          const nm = refLabel(n.kind, n.refId, scripts, modules)
           return {
             id: n.id,
             position: { x: 80 + i * 180, y: 120 },
@@ -240,15 +245,26 @@ export function FlowCanvas({ scripts, runs }: { scripts: ScriptDto[]; runs: RunD
     <div className="flow-canvas">
       <div className="toolbar">
         <input className="name-input" value={name} onChange={(e) => setName(e.target.value)} />
-        <select value={pickScript} onChange={(e) => setPickScript(e.target.value)}>
-          <option value="">스크립트 선택…</option>
-          {scripts.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
+        <select value={pick} onChange={(e) => setPick(e.target.value)}>
+          <option value="">노드 선택…</option>
+          <optgroup label="스크립트">
+            {scripts.map((s) => (
+              <option key={s.id} value={`script:${s.id}`}>
+                {s.name}
+              </option>
+            ))}
+          </optgroup>
+          {modules.length > 0 && (
+            <optgroup label="모듈">
+              {modules.map((m) => (
+                <option key={m.id} value={`module:${m.id}`}>
+                  {m.name}@{m.version}
+                </option>
+              ))}
+            </optgroup>
+          )}
         </select>
-        <button onClick={addNode} disabled={!pickScript}>
+        <button onClick={addNode} disabled={!pick}>
           + 노드
         </button>
         <button onClick={deleteSelected} title="선택한 노드/엣지 삭제 (Del)">
