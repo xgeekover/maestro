@@ -4,7 +4,7 @@
 [![CI](https://github.com/xgeekover/maestro/actions/workflows/ci.yml/badge.svg)](https://github.com/xgeekover/maestro/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Downloads](https://img.shields.io/github/downloads/xgeekover/maestro/total)](https://github.com/xgeekover/maestro/releases)
-![Java](https://img.shields.io/badge/Java-21-orange)
+![Java](https://img.shields.io/badge/Java-17-orange)
 ![Electron](https://img.shields.io/badge/Electron-React-47848F)
 
 순수 **자바 코드를 동적 스크립트**로 작성·컴파일·실행하고, 각 스크립트를 **격리된 병렬 JVM 프로세스**로 돌리며, **node-RED식 플로우**로 연결·분산하고, **대시보드**로 상태·리소스를 실시간 관측하는 멀티플랫폼 플랫폼.
@@ -45,7 +45,7 @@
 
 | 레이어 | 기술 · 버전 |
 |---|---|
-| JVM | **Java 21** (Gradle 멀티모듈, foojay 툴체인 자동 프로비저닝) |
+| JVM | **Java 17** (Gradle 멀티모듈, foojay 툴체인 자동 프로비저닝) |
 | 백엔드 | **Spring Boot 3.3.4** · Spring Data JPA · Bean Validation · WebSocket |
 | 러너 | process-per-script + `javax.tools.JavaCompiler` + 격리 ClassLoader |
 | IPC | **gRPC** (grpc-netty-shaded 1.66.0) 단일 양방향 스트림, 루프백 바인드 |
@@ -91,7 +91,7 @@ docker run -p 8080:8080 -p 9090:9090 ghcr.io/xgeekover/maestro/backend:v0.1.0
 ## 🚀 설치 & 실행 (소스 빌드)
 
 ### 사전 요구
-- **JDK 21** (없으면 Gradle 툴체인이 자동 프로비저닝) · **Node 20+** · **pnpm 11+**
+- **JDK 17** (없으면 Gradle 툴체인이 자동 프로비저닝) · **Node 20+** · **pnpm 11+**
 
 ### 1) 백엔드 (러너 클래스패스 제공 필요)
 ```bash

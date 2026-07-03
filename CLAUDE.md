@@ -16,7 +16,7 @@ maestro/
 ```
 
 ## 기술 스택 (확정 — 변경 시 ADR)
-- **JVM**: Java **21** (Gradle 멀티모듈). 호스트에 JDK 21이 없으면 Gradle 툴체인이 자동 프로비저닝(foojay).
+- **JVM**: Java **17** (Gradle 멀티모듈). 호스트에 JDK 17이 없으면 Gradle 툴체인이 자동 프로비저닝(foojay). ※ 초기 21에서 17로 하향 — [ADR-0004](docs/adr/0004-adopt-java-17.md).
 - **러너**: process-per-script + `javax.tools.JavaCompiler` 동적 컴파일 + 격리 ClassLoader.
 - **IPC**: **gRPC** 단일 양방향 스트림(`protocol/src/main/proto/maestro.proto`).
 - **백엔드**: Spring Boot 3.3, H2(시작) → Postgres 전환경로, 메트릭 인메모리 링버퍼, JWT 인증.
@@ -34,7 +34,7 @@ maestro/
 ./gradlew test               # 전체 테스트(39개: 단위·계약·통합)
 ./gradlew build              # 테스트 + JaCoCo 커버리지(**/build/reports/jacoco/test/)
 ```
-- 첫 빌드는 JDK 21 툴체인 + protoc/gRPC + 의존성 다운로드로 시간이 걸린다.
+- 첫 빌드는 JDK 17 툴체인 + protoc/gRPC + 의존성 다운로드로 시간이 걸린다.
 - 생성된 gRPC 코드: `protocol/build/generated/source/proto/...`.
 
 ### 데스크탑 (Electron + React)
@@ -87,4 +87,4 @@ cd desktop && pnpm install && pnpm dev                                          
 ```
 
 ## CI
-`.github/workflows/ci.yml` — `jvm`(setup-java 21 + `./gradlew build`)와 `desktop`(pnpm install + typecheck + build) 두 잡.
+`.github/workflows/ci.yml` — `jvm`(setup-java 17 + `./gradlew build`)와 `desktop`(pnpm install + typecheck + build) 두 잡.

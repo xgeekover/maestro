@@ -2,7 +2,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- build ----
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /workspace
 COPY . .
 # 백엔드 bootJar + 러너 배포본(노드 프로세스 기동에 사용) 빌드
@@ -10,7 +10,7 @@ RUN ./gradlew --no-daemon :backend:bootJar :runner:installDist
 
 # ---- runtime ----
 # JDK 필요: 러너가 javax.tools.JavaCompiler 로 스크립트를 동적 컴파일한다(JRE 불가).
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
 # healthcheck용 curl + 비루트 사용자
