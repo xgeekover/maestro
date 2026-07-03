@@ -1,6 +1,6 @@
 {
   "name": "maestro-desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Maestro 데스크탑 앱 (Electron + React + Monaco + React Flow)",
   "author": "xgeekover",
   "repository": {
@@ -53,8 +53,8 @@
     "directories": {
       "output": "release"
     },
-    "mac": { "target": "dmg" },
-    "win": { "target": "nsis" },
+    "mac": { "target": ["dmg", "zip"] },
+    "win": { "target": ["nsis", "portable"] },
     "linux": { "target": "AppImage", "category": "Development" }
   }
 }
