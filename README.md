@@ -164,3 +164,6 @@ cd desktop && pnpm typecheck && pnpm build
 ## 📊 상태
 **Phase 0–10 완료** + **QA 강화 · UX/기능 개선 5단계 · 모듈 저작(T1~T3a)**. 총 174개 테스트 그린, 백엔드 컨테이너 end-to-end 검증.
 로컬 전용 전제로 인증·샌드박스(C-1)는 보류(외부 노출 시 필수).
+
+## 📄 라이선스
+[MIT](LICENSE) © 2026 xgeekover
