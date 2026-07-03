@@ -11,6 +11,10 @@
 
 > 백엔드 오케스트레이터가 수많은 스크립트 프로세스를 *지휘자처럼* 병렬로 조율한다. 각 스크립트는 제 박자(`onTick`)로 연주하고, 플로우로 합주한다.
 
+<p align="center">
+  <img src="docs/screenshots/demo.gif" width="820" alt="Maestro 데모 — 스크립트 실행·실시간 메트릭·로그 스트리밍" />
+</p>
+
 ---
 
 ## ✨ 핵심 기능
@@ -24,6 +28,16 @@
 - **실행 이력** — 종료된 실행을 영속 기록·조회
 - **플로우(node-RED식)** — 노드(스크립트/모듈)를 이름 있는 **포트**로 연결해 메시지 라우팅·처리 분산(**DAG** 강제·백프레셔)
 - **모듈** — 로직을 **이름·버전(semver)·포트 스펙**으로 패키징한 재사용 단위. 다중 인스턴스화·다중 포트 배선(그래프 포트 검증)
+
+---
+
+## 📸 화면
+
+| 스크립트 — 편집·실행·관측 | 대시보드 — 프로세스 그리드 |
+|---|---|
+| [![스크립트 뷰](docs/screenshots/01-scripts.png)](docs/screenshots/01-scripts.png) | [![대시보드](docs/screenshots/02-dashboard.png)](docs/screenshots/02-dashboard.png) |
+| **플로우 — 이름 있는 포트 배선** | **모듈 — 버전·포트 스펙 저작** |
+| [![플로우 캔버스](docs/screenshots/04-flow.png)](docs/screenshots/04-flow.png) | [![모듈 저작](docs/screenshots/03-modules.png)](docs/screenshots/03-modules.png) |
 
 ---
 
@@ -181,6 +195,21 @@ cd desktop && pnpm typecheck && pnpm build
 - [SDK 레퍼런스](docs/sdk-reference.md) · [사용자 가이드](docs/user-guide.md)
 - 단계별: [분석](docs/00-analysis.md) · [설계](docs/01-architecture.md) · [엔진](docs/03-script-engine.md) · [오케스트레이터](docs/04-orchestrator.md) · [데스크탑](docs/05-desktop.md) · [플로우](docs/06-flow.md) · [대시보드](docs/07-dashboard.md) · [테스트](docs/08-testing.md) · [시뮬레이션](docs/09-simulation-report.md) · [배포](docs/10-deployment.md)
 - 품질: [QA 리포트](docs/qa-report.md) · 결정: [ADR](docs/adr/)
+
+---
+
+## 🗺️ 로드맵
+
+**v0.2.0 후보**
+- [ ] 모듈 **T3b** — 러너측 emit 포트 강제(선언 안 된 포트로 emit 시 거부/경고)
+- [ ] **상태 영속** — `ScriptContext.state()`(KV)를 재시작 간 DB에 저장
+- [ ] **코드 서명** — macOS notarize · Windows 인증서(정식 배포용, 현재 미서명)
+- [ ] 목록 페이지네이션 일반화 · 백프레셔 정책 선택 UI
+
+**향후**
+- [ ] **인증·샌드박스(C-1)** — 외부 노출 시 필수(현재 로컬 전용 전제로 보류)
+- [ ] **Postgres 전환** — 다중 사용자/HA
+- [ ] **JDT LS 풀 시맨틱** — 렌더러 monaco-languageclient ↔ Electron stdio LSP 브리지
 
 ---
 
