@@ -1,5 +1,6 @@
 package io.maestro.backend.grpc;
 
+import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.maestro.backend.flow.FlowRuntime;
@@ -7,6 +8,7 @@ import io.maestro.backend.process.RunInfo;
 import io.maestro.backend.process.RunRegistry;
 import io.maestro.backend.process.RunStatus;
 import io.maestro.backend.process.Supervisor;
+import io.maestro.backend.state.ScriptStateService;
 import io.maestro.backend.telemetry.LogEntry;
 import io.maestro.backend.telemetry.MetricSnapshot;
 import io.maestro.backend.telemetry.TelemetryStore;
@@ -17,10 +19,14 @@ import io.maestro.protocol.v1.LogRecord;
 import io.maestro.protocol.v1.MetricSample;
 import io.maestro.protocol.v1.RunnerGatewayGrpc;
 import io.maestro.protocol.v1.RunnerMessage;
+import io.maestro.protocol.v1.StateOp;
+import io.maestro.protocol.v1.StateResult;
 import io.maestro.protocol.v1.StatusReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * 러너↔백엔드 양방향 스트림 처리. 러너 1개당 하나의 Session.
@@ -35,13 +41,15 @@ public class RunnerGatewayService extends RunnerGatewayGrpc.RunnerGatewayImplBas
     private final TelemetryStore telemetry;
     private final Supervisor supervisor;
     private final FlowRuntime flowRuntime;
+    private final ScriptStateService scriptState;
 
     public RunnerGatewayService(RunRegistry registry, TelemetryStore telemetry, Supervisor supervisor,
-                                FlowRuntime flowRuntime) {
+                                FlowRuntime flowRuntime, ScriptStateService scriptState) {
         this.registry = registry;
         this.telemetry = telemetry;
         this.supervisor = supervisor;
         this.flowRuntime = flowRuntime;
+        this.scriptState = scriptState;
     }
 
     @Override
@@ -81,8 +89,14 @@ public class RunnerGatewayService extends RunnerGatewayGrpc.RunnerGatewayImplBas
                             flowRuntime.route(run, msg.getEmit().getPort(), msg.getEmit().getPayloadJson());
                         }
                     }
-                    case STATE_OP, ACK, PAYLOAD_NOT_SET -> {
-                        // STATE_OP/ACK: Phase 4 미사용.
+                    case STATE_OP -> {
+                        if (run != null) {
+                            run.touchTelemetry();
+                            handleStateOp(run, msg.getStateOp());
+                        }
+                    }
+                    case ACK, PAYLOAD_NOT_SET -> {
+                        // ACK: 미사용.
                     }
                 }
             }
@@ -113,6 +127,38 @@ public class RunnerGatewayService extends RunnerGatewayGrpc.RunnerGatewayImplBas
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    /** 러너 state() 요청 처리: put=upsert, remove=삭제, get/contains=조회 후 StateResult 회신. */
+    private void handleStateOp(RunInfo run, StateOp op) {
+        String owner = ownerKey(run);
+        switch (op.getOp()) {
+            case PUT -> scriptState.put(owner, op.getKey(), op.getValueJson().toStringUtf8());
+            case REMOVE -> scriptState.remove(owner, op.getKey());
+            case GET -> {
+                Optional<String> v = scriptState.get(owner, op.getKey());
+                run.sendCommand(BackendMessage.newBuilder().setStateResult(
+                        StateResult.newBuilder()
+                                .setCorrelationId(op.getCorrelationId())
+                                .setFound(v.isPresent())
+                                .setValueJson(ByteString.copyFromUtf8(v.orElse("")))).build());
+            }
+            case CONTAINS -> {
+                boolean has = scriptState.contains(owner, op.getKey());
+                run.sendCommand(BackendMessage.newBuilder().setStateResult(
+                        StateResult.newBuilder()
+                                .setCorrelationId(op.getCorrelationId())
+                                .setFound(has)).build());
+            }
+            default -> {
+                // OP_UNSPECIFIED/UNRECOGNIZED: 무시
+            }
+        }
+    }
+
+    /** 상태 소유 범위: 단독 실행은 scriptId, 플로우 노드는 flowId:nodeId(인스턴스별 격리). */
+    private static String ownerKey(RunInfo run) {
+        return run.flowId() != null ? run.flowId() + ":" + run.nodeId() : run.scriptId();
     }
 
     private void applyStatus(RunInfo run, StatusReport status) {

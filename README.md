@@ -203,7 +203,7 @@ cd desktop && pnpm typecheck && pnpm build
 
 **v0.2.0 후보**
 - [ ] 모듈 **T3b** — 러너측 emit 포트 강제(선언 안 된 포트로 emit 시 거부/경고)
-- [ ] **상태 영속** — `ScriptContext.state()`(KV)를 재시작 간 DB에 저장
+- [x] **상태 영속** — `ScriptContext.state()`(KV)를 재시작 간 DB에 저장 ✅ (Flyway `script_state`, 러너↔백엔드 StateOp 왕복)
 - [ ] **코드 서명** — macOS notarize · Windows 인증서(정식 배포용, 현재 미서명)
 - [ ] 목록 페이지네이션 일반화 · 백프레셔 정책 선택 UI
 

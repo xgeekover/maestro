@@ -12,6 +12,7 @@ import io.maestro.protocol.v1.TickExceptionPolicy;
 import io.maestro.runner.engine.EngineConfig;
 import io.maestro.runner.engine.LifecycleEngine;
 import io.maestro.runner.engine.TickPolicy;
+import io.maestro.sdk.KeyValueStore;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +34,7 @@ public final class RunnerClient {
     private final AtomicReference<LifecycleEngine> engineRef = new AtomicReference<>();
     private final AtomicReference<GrpcContext> contextRef = new AtomicReference<>();
     private volatile StreamSender sender;
+    private volatile StateClient stateClient;
 
     public RunnerClient(String host, int port, String runnerId, String scriptId, String token) {
         this.host = host;
@@ -71,7 +73,13 @@ public final class RunnerClient {
                                 e.setTickPeriodMs(msg.getUpdatePeriod().getTickPeriodMs());
                             }
                         }
-                        case HEARTBEAT, STATE_RESULT, PAYLOAD_NOT_SET -> {
+                        case STATE_RESULT -> {
+                            StateClient sc = stateClient;
+                            if (sc != null) {
+                                sc.complete(msg.getStateResult());
+                            }
+                        }
+                        case HEARTBEAT, PAYLOAD_NOT_SET -> {
                             // 미사용/무시
                         }
                     }
@@ -92,6 +100,7 @@ public final class RunnerClient {
 
             StreamObserver<RunnerMessage> request = stub.session(responseObserver);
             this.sender = new StreamSender(request);
+            this.stateClient = new StateClient(sender, 3000);
 
             // 핸드셰이크
             sender.send(RunnerMessage.newBuilder()
@@ -115,7 +124,8 @@ public final class RunnerClient {
 
     private void handleStart(StartCommand cmd) {
         RunnerStats stats = new RunnerStats();
-        GrpcContext ctx = new GrpcContext(scriptId, cmd.getParamsMap(), sender);
+        KeyValueStore state = new RemoteKeyValueStore(stateClient);
+        GrpcContext ctx = new GrpcContext(scriptId, cmd.getParamsMap(), sender, state);
         contextRef.set(ctx);
 
         EngineConfig cfg = EngineConfig.builder()
