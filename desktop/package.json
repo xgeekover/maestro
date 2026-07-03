@@ -2,6 +2,12 @@
   "name": "maestro-desktop",
   "version": "0.1.0",
   "description": "Maestro 데스크탑 앱 (Electron + React + Monaco + React Flow)",
+  "author": "xgeekover",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xgeekover/maestro.git"
+  },
+  "license": "MIT",
   "private": true,
   "type": "module",
   "main": "dist/electron/main.js",
@@ -40,6 +46,7 @@
   "build": {
     "appId": "io.maestro.desktop",
     "productName": "Maestro",
+    "publish": { "provider": "github", "owner": "xgeekover", "repo": "maestro" },
     "files": [
       "dist/**/*"
     ],
@@ -48,6 +55,6 @@
     },
     "mac": { "target": "dmg" },
     "win": { "target": "nsis" },
-    "linux": { "target": "AppImage" }
+    "linux": { "target": "AppImage", "category": "Development" }
   }
 }
