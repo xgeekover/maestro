@@ -74,19 +74,20 @@ maestro/
 
 ## ⬇️ 다운로드
 
-OS별 설치본을 받거나(백엔드는 컨테이너로 실행) → **[Releases](https://github.com/xgeekover/maestro/releases/latest)**
+최신 릴리스에서 OS별 **설치본** 또는 **무설치본(포터블)**을 받으세요 → **[Releases (latest)](https://github.com/xgeekover/maestro/releases/latest)**
 
-| 플랫폼 | 설치본 |
-|---|---|
-| 🍎 macOS (Apple Silicon) | [Maestro-0.1.0-arm64.dmg](https://github.com/xgeekover/maestro/releases/download/v0.1.0/Maestro-0.1.0-arm64.dmg) |
-| 🪟 Windows | [Maestro.Setup.0.1.0.exe](https://github.com/xgeekover/maestro/releases/download/v0.1.0/Maestro.Setup.0.1.0.exe) |
-| 🐧 Linux | [Maestro-0.1.0.AppImage](https://github.com/xgeekover/maestro/releases/download/v0.1.0/Maestro-0.1.0.AppImage) |
+| 플랫폼 | 설치본 | 무설치본(포터블) |
+|---|---|---|
+| 🍎 macOS (Apple Silicon) | [.dmg](https://github.com/xgeekover/maestro/releases/download/v0.1.1/Maestro-0.1.1-arm64.dmg) | [.zip](https://github.com/xgeekover/maestro/releases/download/v0.1.1/Maestro-0.1.1-arm64-mac.zip) |
+| 🪟 Windows | [Setup.exe](https://github.com/xgeekover/maestro/releases/download/v0.1.1/Maestro.Setup.0.1.1.exe) | [portable.exe](https://github.com/xgeekover/maestro/releases/download/v0.1.1/Maestro.0.1.1.exe) |
+| 🐧 Linux | — | [.AppImage](https://github.com/xgeekover/maestro/releases/download/v0.1.1/Maestro-0.1.1.AppImage) |
 
 ```bash
-# 백엔드 컨테이너 이미지 (GHCR)
-docker run -p 8080:8080 -p 9090:9090 ghcr.io/xgeekover/maestro/backend:v0.1.0
+# 백엔드 컨테이너 이미지 (GHCR, Java 17)
+docker run -p 8080:8080 -p 9090:9090 ghcr.io/xgeekover/maestro/backend:latest
 ```
-> 설치본은 **미서명**입니다 — macOS는 *우클릭 → 열기*, Windows는 SmartScreen *추가 정보 → 실행*.
+> **무설치본**: macOS zip은 압축 해제 후 `Maestro.app` 실행, Windows portable.exe는 설치 없이 실행, Linux AppImage는 실행 권한 부여 후 실행.
+> 설치본/무설치본 모두 **미서명**입니다 — macOS는 *우클릭 → 열기*, Windows는 SmartScreen *추가 정보 → 실행*.
 
 ## 🚀 설치 & 실행 (소스 빌드)
 
