@@ -72,6 +72,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: maestro-desktop-*   # 백엔드 잡의 *.dockerbuild 부산물 제외(다운로드 실패 방지)
       - uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
