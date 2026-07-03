@@ -1,5 +1,12 @@
 # 🎼 Maestro — 동적 자바 스크립트 플랫폼
 
+[![Release](https://img.shields.io/github/v/release/xgeekover/maestro?sort=semver)](https://github.com/xgeekover/maestro/releases/latest)
+[![CI](https://github.com/xgeekover/maestro/actions/workflows/ci.yml/badge.svg)](https://github.com/xgeekover/maestro/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/xgeekover/maestro/total)](https://github.com/xgeekover/maestro/releases)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Electron](https://img.shields.io/badge/Electron-React-47848F)
+
 순수 **자바 코드를 동적 스크립트**로 작성·컴파일·실행하고, 각 스크립트를 **격리된 병렬 JVM 프로세스**로 돌리며, **node-RED식 플로우**로 연결·분산하고, **대시보드**로 상태·리소스를 실시간 관측하는 멀티플랫폼 플랫폼.
 
 > 백엔드 오케스트레이터가 수많은 스크립트 프로세스를 *지휘자처럼* 병렬로 조율한다. 각 스크립트는 제 박자(`onTick`)로 연주하고, 플로우로 합주한다.
@@ -51,7 +58,23 @@ maestro/
 
 ---
 
-## 🚀 설치 & 실행 (로컬)
+## ⬇️ 다운로드
+
+OS별 설치본을 받거나(백엔드는 컨테이너로 실행) → **[Releases](https://github.com/xgeekover/maestro/releases/latest)**
+
+| 플랫폼 | 설치본 |
+|---|---|
+| 🍎 macOS (Apple Silicon) | [Maestro-0.1.0-arm64.dmg](https://github.com/xgeekover/maestro/releases/download/v0.1.0/Maestro-0.1.0-arm64.dmg) |
+| 🪟 Windows | [Maestro.Setup.0.1.0.exe](https://github.com/xgeekover/maestro/releases/download/v0.1.0/Maestro.Setup.0.1.0.exe) |
+| 🐧 Linux | [Maestro-0.1.0.AppImage](https://github.com/xgeekover/maestro/releases/download/v0.1.0/Maestro-0.1.0.AppImage) |
+
+```bash
+# 백엔드 컨테이너 이미지 (GHCR)
+docker run -p 8080:8080 -p 9090:9090 ghcr.io/xgeekover/maestro/backend:v0.1.0
+```
+> 설치본은 **미서명**입니다 — macOS는 *우클릭 → 열기*, Windows는 SmartScreen *추가 정보 → 실행*.
+
+## 🚀 설치 & 실행 (소스 빌드)
 
 ### 사전 요구
 - **JDK 21** (없으면 Gradle 툴체인이 자동 프로비저닝) · **Node 20+** · **pnpm 11+**
