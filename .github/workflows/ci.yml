@@ -37,7 +37,7 @@ jobs:
           version: 11
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'          # pnpm 11.9+ 는 Node >= 22.13 필요
           cache: pnpm
           cache-dependency-path: desktop/pnpm-lock.yaml
       - name: Install

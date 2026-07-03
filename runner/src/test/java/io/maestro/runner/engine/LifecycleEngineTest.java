@@ -180,9 +180,17 @@ class LifecycleEngineTest {
         AtomicReference<EngineResult> ref = new AtomicReference<>();
         Thread t = new Thread(() -> ref.set(engine.run()));
         t.start();
-        Thread.sleep(80); // 몇 tick 진행
+        // 컴파일·onStart를 지나 tick 루프(RUNNING)에 진입할 때까지 대기.
+        // (고정 sleep은 느린/차가운 CI에서 컴파일 중 stop()→interrupt로 onStart가
+        //  InterruptedException 처리되어 ERROR로 끝나는 레이스를 유발했다.)
+        long deadline = System.currentTimeMillis() + 5000;
+        while (engine.state() != LifecycleState.RUNNING && System.currentTimeMillis() < deadline) {
+            Thread.sleep(2);
+        }
+        assertEquals(LifecycleState.RUNNING, engine.state(), "tick 루프 진입");
+        Thread.sleep(50); // 몇 tick 진행
         engine.stop();    // 사용자 중지
-        t.join(2000);
+        t.join(5000);
 
         EngineResult r = ref.get();
         assertNotNull(r, "엔진이 종료되어야 함");
